@@ -1,4 +1,6 @@
 import "./App.css";
+import React from "react";
+import { Board } from "./View/Board.tsx";
 let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
 function App() {
@@ -11,9 +13,12 @@ function App() {
   };
 
   return (
-    <div className="login" onClick={handleClick}>
-      {"Login"}
-    </div>
+    <>
+      <div className="login" onClick={handleClick}>
+        {"Login"}
+      </div>
+      <Board fen={""} />
+    </>
   );
 }
 

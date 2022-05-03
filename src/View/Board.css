@@ -1,0 +1,24 @@
+.chess-board-and-figures {
+    width: fit-content;
+    padding: 10px;
+    background-color: black;
+    box-sizing: border-box;
+    border-radius: 10px;
+    display: flex;
+    height: fit-content;
+    align-self: center;
+    margin: auto;
+}
+
+.chess-board-col-letters {
+    margin-left: 18px;
+}
+
+.chess-board-col-letter {
+    display: inline-flex;
+    color: white;
+    width: 50px;
+    justify-content: center;
+    height: 18px;
+    align-items: center;
+}

@@ -1,20 +1,19 @@
-html, body {
+html, body, #root {
     height: 100%;
     width: 100%;
     position: absolute;
+    background: darkslategray;
+    display: inline-block;
 }
 
 .login {
     background: burlywood;
     height: 40px;
-    /* width: -moz-fit-content; */
     width: fit-content;
     margin: auto;
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: absolute;
     padding: 0px 27px;
     border-radius: 20px;
     margin: 30px;
