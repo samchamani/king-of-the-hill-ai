@@ -9,6 +9,7 @@
   width: 50px;
   background-position: 50%;
   background-repeat: no-repeat;
+  position: absolute;
 }
 
 .chess-figure.kwhite {

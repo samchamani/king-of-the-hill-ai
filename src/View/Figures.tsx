@@ -1,15 +1,27 @@
 import * as React from "react";
 import "./Figures.css";
-import { Figure } from "./Figure";
+import { figType, Figure } from "./Figure";
 
 export interface FiguresProps {
-  fen: string;
+  board: figType[][];
 }
 
 export const Figures = (props: FiguresProps) => {
-  return (
-    <div className="chess-figures">
-      <Figure fig="N" col="a" row={1} />
-    </div>
-  );
+  const figureList = [];
+  for (const row in props.board) {
+    const rowNumber = parseInt(row) + 1;
+    for (const col in props.board[row]) {
+      const colNumber = parseInt(col) + 1;
+      figureList.push(
+        <Figure
+          key={props.board[row][col] + colNumber + rowNumber}
+          fig={props.board[row][col]}
+          col={colNumber}
+          row={rowNumber}
+        />
+      );
+    }
+  }
+
+  return <div className="chess-figures">{figureList}</div>;
 };
