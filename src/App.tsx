@@ -13,6 +13,8 @@ function App() {
   //   let parsedMessage = JSON.parse(message);
   //   console.log("Message from server: \n" + message);
   // };
+  console.log(parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
+  
 
   return (
     <>
