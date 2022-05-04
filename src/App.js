@@ -1,16 +1,18 @@
 import "./App.css";
-import React from "react";
+import * as React from "react";
 import { Board } from "./View/Board.tsx";
-let ws = new WebSocket("ws://localhost:8025/websockets/game");
+// fuer Server Kommunikation
+// let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
 function App() {
-  //   console.log(ws);
-  ws.onmessage = (e) => {
-    let message = e.data;
-    // console.log(message);
-    let parsedMessage = JSON.parse(message);
-    console.log("Message from server: \n" + message);
-  };
+  // fuer Server Kommunikation
+  // console.log(ws);
+  // ws.onmessage = (e) => {
+  //   let message = e.data;
+  //   console.log(message);
+  //   let parsedMessage = JSON.parse(message);
+  //   console.log("Message from server: \n" + message);
+  // };
 
   return (
     <>
@@ -23,12 +25,13 @@ function App() {
 }
 
 const handleClick = () => {
-  ws.send(
-    JSON.stringify({
-      type: 0,
-      username: "Gruppe AI",
-    })
-  );
+  // fuer Server Kommunikation
+  // ws.send(
+  //   JSON.stringify({
+  //     type: 0,
+  //     username: "Gruppe AI",
+  //   })
+  // );
 };
 
 export default App;

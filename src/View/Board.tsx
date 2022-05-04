@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { BoardRow } from './BoardRow';
 import './Board.css'
 
@@ -16,14 +16,14 @@ export const Board = (props: BoardProps) => {
   const rows = [];
   for (let i = 8; i>=1; i--) {
     rows.push(<BoardRow 
-      key={i} 
+      key={`row-${i}`} 
       rowNumber={i}
       isWhiteLeft={i % 2 === 0}/>)
   }
 
   const colLetters = []
   for (const l of LETTERS){
-    colLetters.push(<div className="chess-board-col-letter">{l}</div>)
+    colLetters.push(<div key={`col-${l}`} className="chess-board-col-letter">{l}</div>)
   }
   return (
     <div className='chess-board-and-figures'>
@@ -35,5 +35,3 @@ export const Board = (props: BoardProps) => {
     </div>
   )
 };
-
-// export default Board
