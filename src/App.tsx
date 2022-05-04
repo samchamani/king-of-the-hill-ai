@@ -1,6 +1,7 @@
 import "./App.css";
 import * as React from "react";
 import { Board } from "./View/Board";
+import { figType } from "./View/Figure";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
@@ -13,15 +14,16 @@ function App() {
   //   let parsedMessage = JSON.parse(message);
   //   console.log("Message from server: \n" + message);
   // };
-  console.log(parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
-  
+
+  const exampleFEN =
+    "rnbqk1nr/pppp2pp/3P4/1P2Nb2/2BBpPp1/1QQQ4/P2PP1PP/R1BQK1NR";
 
   return (
     <>
       <div className="login" onClick={handleClick}>
         {"Login"}
       </div>
-      <Board fen={"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"} />
+      <Board board={parseFEN(exampleFEN)} />
     </>
   );
 }
@@ -36,7 +38,7 @@ const handleClick = () => {
   // );
 };
 
-const parseFEN = (fen: string) => {
+const parseFEN = (fen: string): figType[][] => {
   const board = Array.from(Array(8), () => new Array(8));
   const rows = fen.split("/");
   if (rows.length === 8) {

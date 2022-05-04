@@ -12,27 +12,40 @@ export type figType =
   | "R"
   | "r"
   | "P"
-  | "p";
-
-export type colType = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h";
-
-export type rowType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  | "p"
+  | "";
 
 export interface FigureProps {
   fig: figType;
-  col: colType;
-  row: rowType;
+
+  /**
+   * Zahl von 1-8: steht für a bis h
+   */
+  col: number;
+
+  /**
+   * Zahl von 1-8
+   */
+  row: number;
 }
 
 export const Figure = (props: FigureProps) => {
+  const posStyles = {
+    top: (props.row - 1) * 50,
+    left: (props.col - 1) * 50,
+  };
+
+  console.log("figType,col,row:", props.fig, props.col, props.row);
   return (
     <div
       className={`chess-figure ${props.fig.toLowerCase() + isWhite(props.fig)}`}
+      style={posStyles}
     />
   );
 };
 
 function isWhite(str: string): string {
+  if (str === "") return "";
   str === str.toUpperCase() ? "white" : "black";
   return str === str.toUpperCase() ? "white" : "black";
 }
