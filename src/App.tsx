@@ -1,6 +1,6 @@
 import "./App.css";
 import * as React from "react";
-import { Board } from "./View/Board.tsx";
+import { Board } from "./View/Board";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
@@ -19,7 +19,7 @@ function App() {
       <div className="login" onClick={handleClick}>
         {"Login"}
       </div>
-      <Board fen={""} />
+      <Board fen={"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"} />
     </>
   );
 }
@@ -32,6 +32,10 @@ const handleClick = () => {
   //     username: "Gruppe AI",
   //   })
   // );
+};
+
+const parseFEN = (fen: string) => {
+  fen;
 };
 
 export default App;

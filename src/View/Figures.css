@@ -1,0 +1,49 @@
+.chess-figures {
+  position: absolute;
+  margin-left: 18px;
+}
+
+.chess-figure {
+  background-size: 50px 50px;
+  height: 50px;
+  width: 50px;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+
+.chess-figure.kwhite {
+  background-image: url("Assets/KWhite.svg");
+}
+.chess-figure.kblack {
+  background-image: url("Assets/KBlack.svg");
+}
+.chess-figure.qwhite {
+  background-image: url("Assets/QWhite.svg");
+}
+.chess-figure.qblack {
+  background-image: url("Assets/QBlack.svg");
+}
+.chess-figure.bwhite {
+  background-image: url("Assets/BWhite.svg");
+}
+.chess-figure.bblack {
+  background-image: url("Assets/BBlack.svg");
+}
+.chess-figure.nwhite {
+  background-image: url("Assets/NWhite.svg");
+}
+.chess-figure.nblack {
+  background-image: url("Assets/NBlack.svg");
+}
+.chess-figure.rwhite {
+  background-image: url("Assets/RWhite.svg");
+}
+.chess-figure.rblack {
+  background-image: url("Assets/RBlack.svg");
+}
+.chess-figure.pwhite {
+  background-image: url("Assets/PWhite.svg");
+}
+.chess-figure.pblack {
+  background-image: url("Assets/PBlack.svg");
+}

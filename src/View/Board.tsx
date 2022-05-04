@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { BoardRow } from './BoardRow';
+import { Figures } from './Figures';
 import './Board.css'
 
 const LETTERS = ['a','b','c','d','e','f','g','h']
@@ -31,7 +32,7 @@ export const Board = (props: BoardProps) => {
         {rows}
         <div className="chess-board-col-letters">{colLetters}</div>
       </div>
-      <div className='chess-figures'></div>
+      <Figures fen={props.fen} />
     </div>
   )
 };
