@@ -1,6 +1,10 @@
 import { figType } from "../View/Figure";
 
 export const isWhite = (str: string | figType) => {
+  if (isEmpty(str as figType)) {
+    console.log("Asked if white or black, but field is empty");
+    return;
+  }
   return str.toUpperCase() === str;
 };
 

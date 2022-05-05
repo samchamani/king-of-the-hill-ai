@@ -9,8 +9,8 @@ import { getMoves } from "./Model/Moves";
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
 const PlaceHolderIncomingFEN =
-  "rnbqkbnr/p1pppppp/8/PpP5/8/8/PPPPPPPP/RNBQKBNR w KQkq b6 0 1";
-export const assignedColor = "w";
+  "rnbqkbnr/pppppppp/8/PpP5/5P2/8/P1P1P1PP/RNBQKBNR w KQkq b6 0 1";
+export const assignedColor: string = "w";
 
 export type gameState = {
   board: figType[][];
@@ -34,11 +34,11 @@ export type gameState = {
    * oder eine Figur geschlagen wurde, um 1 erhöht.
    * -> 50-Züge-Regel: Remi-Antrag, wenn diese Zahl 100 ist. Remi bei 150.
    */
-  halfmoveClock: string;
+  halfmoveClock: number;
   /**
    * Beginnt mit 1 und wird nach jedem Zug von schwarz um 1 erhöht
    */
-  fullmoveCount: string;
+  fullmoveCount: number;
 };
 
 function App() {
@@ -57,8 +57,8 @@ function App() {
     isWhiteTurn: splittedFEN[1] === "w",
     castleRight: splittedFEN[2],
     enPassant: splittedFEN[3],
-    halfmoveClock: splittedFEN[4],
-    fullmoveCount: splittedFEN[5],
+    halfmoveClock: parseInt(splittedFEN[4]),
+    fullmoveCount: parseInt(splittedFEN[5]),
   });
 
   const moves = getMoves(state);

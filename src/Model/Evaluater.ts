@@ -13,7 +13,7 @@ export const evaluateBoard = (board: figType[][], playsWhite: boolean) => {
   for (const row of board) {
     for (const cell of row) {
       if (cell === "") continue;
-      const colorFactor = playsWhite && isWhite(cell) ? 1 : -1;
+      const colorFactor = playsWhite === isWhite(cell) ? 1 : -1;
       switch (cell) {
         case "P":
           sum += colorFactor * 1;

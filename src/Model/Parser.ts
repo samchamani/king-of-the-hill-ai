@@ -19,7 +19,7 @@ export const parseFEN = (fen: string): figType[][] => {
     board.push(rowContent);
   }
 
-  console.log("Score: ", evaluateBoard(board, assignedColor === "w")); //TODO: Remove
+  console.log("Current score: ", evaluateBoard(board, assignedColor === "w")); //TODO: Remove
 
   return board;
 };
