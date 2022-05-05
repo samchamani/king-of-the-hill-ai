@@ -26,34 +26,8 @@ export const toFEN = (board: figType[][]) => {
   return "";
 };
 
-//TODO: improve
-function toFieldNotation(colIndex: string) {
-  let result = "?";
-  switch (colIndex) {
-    case "0":
-      result = "a";
-      break;
-    case "1":
-      result = "b";
-      break;
-    case "2":
-      result = "c";
-      break;
-    case "3":
-      result = "d";
-      break;
-    case "4":
-      result = "e";
-      break;
-    case "5":
-      result = "f";
-      break;
-    case "6":
-      result = "g";
-      break;
-    case "7":
-      result = "h";
-      break;
-  }
-  return result;
+export function makeField(row: number, col: number) {
+  const cols = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  const rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
+  return rows[row] + cols[col];
 }

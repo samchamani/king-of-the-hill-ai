@@ -1,6 +1,7 @@
 import { gameState } from "../App";
 // import { figType } from "../View/Figure";
 import { isIndexOnBoard, isWhite } from "./Utils";
+import { makeField } from "./Parser";
 
 export const getMoves = (state: gameState) => {
   let moves: string[] = [];
@@ -53,8 +54,9 @@ const getMovesP = (state: gameState, [row, col]: [number, number]) => {
   // 1 Step vor:
   const oneAhead = row + colorFactor * 1;
   if (isIndexOnBoard(oneAhead) && board[oneAhead][col] === "") {
-    // TODO: Indizes => Schachbrettfeld
-    moves.push(`${fig}${row}${col}-${row + colorFactor * 1}${col}`);
+    moves.push(
+      fig + makeField(row, col) + "-" + makeField(row + colorFactor * 1, col)
+    );
   }
 
   // TODO: 2 Step vor:
