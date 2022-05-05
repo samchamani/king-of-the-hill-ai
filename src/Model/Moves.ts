@@ -1,6 +1,6 @@
 import { gameState } from "../App";
 // import { figType } from "../View/Figure";
-import { isIndexOnBoard, isWhite } from "./Utils";
+import { isIndexOnBoard, isWhite, isEmpty, isBeatable } from "./Utils";
 import { makeField } from "./Parser";
 
 export const getMoves = (state: gameState) => {
@@ -52,19 +52,78 @@ const getMovesP = (state: gameState, [row, col]: [number, number]) => {
   const colorFactor = isWhite(fig) ? -1 : 1;
 
   // 1 Step vor:
-  const oneAhead = row + colorFactor * 1;
-  if (isIndexOnBoard(oneAhead) && board[oneAhead][col] === "") {
-    moves.push(
-      fig + makeField(row, col) + "-" + makeField(row + colorFactor * 1, col)
-    );
+  const oneAhead = row + colorFactor;
+  if (isIndexOnBoard(oneAhead)) {
+    if (isEmpty(board[oneAhead][col])) {
+      moves.push(fig + makeField(row, col) + "-" + makeField(oneAhead, col));
+    } else if (isBeatable(fig, board[oneAhead][col])) {
+      moves.push(fig + makeField(row, col) + "-" + makeField(oneAhead, col));
+    }
   }
 
   // TODO: 2 Step vor:
+  const twoAhead = row + colorFactor * 2;
+  if (isIndexOnBoard(twoAhead) && row + colorFactor * -2.5 === 3.5) {
+    if (isEmpty(board[twoAhead][col])) {
+      moves.push(fig + makeField(row, col) + "-" + makeField(twoAhead, col));
+    } else if (isBeatable(fig, board[twoAhead][col])) {
+      moves.push(fig + makeField(row, col) + "-" + makeField(twoAhead, col));
+    }
+  }
 
   // TODO: schräger Schlagzug:
 
-  // TODO: En Passant:
+  const diaLeftRow = row + colorFactor * -1;
+  const diaLeftCol = col -1;
 
+  const diaRightRow = row + colorFactor * -1;
+  const diaRightCol = col + 1;
+
+  if (
+    isIndexOnBoard(diaLeftCol, diaLeftRow) &&
+    !isEmpty(board[diaLeftRow][diaLeftCol]) &&
+    isBeatable(fig, board[diaLeftRow][diaLeftCol])
+  ) {
+    moves.push(
+      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
+    );
+  }
+
+  if (
+    isIndexOnBoard(diaRightCol, diaRightRow) &&
+    !isEmpty(board[diaRightRow][diaRightCol]) &&
+    isBeatable(fig, board[diaRightRow][diaRightCol])
+  ) {
+    moves.push(
+      fig + makeField(row, col) + "-" + makeField(diaRightRow, diaRightCol)
+    );
+  }
+
+
+  // TODO: En Passant:
+  const passLeftCol = col - 1;
+  const passRightCol = col +1;
+
+  if (
+    isIndexOnBoard(diaLeftCol, diaLeftRow, passLeftCol) &&
+    isEmpty(board[diaLeftRow][diaLeftCol]) &&
+    isBeatable(fig, board[row][passLeftCol])
+  ) {
+    moves.push(
+      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
+    );
+  }
+
+  if (
+    isIndexOnBoard(diaRightCol, diaRightRow, passRightCol) &&
+    isEmpty(board[diaRightRow][diaRightCol]) &&
+    isBeatable(fig, board[row][passRightCol])
+  ) {
+    moves.push(
+      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
+    );
+  } 
+  
   return moves;
 };
 
