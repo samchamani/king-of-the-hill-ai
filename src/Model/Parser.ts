@@ -2,6 +2,9 @@ import { figType } from "../View/Figure";
 import { evaluateBoard } from "./Evaluater";
 import { assignedColor } from "../App";
 
+const colNames = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const rowNames = ["8", "7", "6", "5", "4", "3", "2", "1"];
+
 export const parseFEN = (fen: string): figType[][] => {
   const rows = fen.split("/");
   const board: figType[][] = [];
@@ -27,7 +30,5 @@ export const toFEN = (board: figType[][]) => {
 };
 
 export function makeField(row: number, col: number) {
-  const cols = ["a", "b", "c", "d", "e", "f", "g", "h"];
-  const rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
-  return rows[row] + cols[col];
+  return rowNames[row] + colNames[col];
 }
