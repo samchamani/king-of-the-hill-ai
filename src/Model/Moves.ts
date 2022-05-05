@@ -2,7 +2,6 @@ import { gameState } from "../App";
 // import { figType } from "../View/Figure";
 import { isIndexOnBoard, isWhite, isEmpty, isBeatable } from "./Utils";
 import { makeField, makeIndex } from "./Parser";
-import { getConfigFileParsingDiagnostics } from "typescript";
 
 export const getMoves = (state: gameState) => {
   let moves: string[] = [];
@@ -141,7 +140,54 @@ const getMovesB = (state: gameState, [row, col]: [number, number]) => {
 };
 
 const getMovesN = (state: gameState, [row, col]: [number, number]) => {
-  return "";
+  let moves: string[] = [];
+  const board = state.board;
+  const fig = board[row][col];
+
+  const getMovesHelper = (newRow: number, newCol: number) => {
+    if (isIndexOnBoard(newRow, newCol)) {
+      if (isEmpty(board[newRow][newCol])) {
+        moves.push(
+          fig + makeField(row, col) + "-" + makeField(newRow, newCol)
+        );
+      } else if (isBeatable(fig, board[newRow][newCol])) {
+        moves.push(
+          fig + makeField(row, col) + "x" + makeField(newRow, newCol)
+        );
+      }
+    }
+  };
+  const upRow = row - 2;
+  const upLeftCol = col - 1;
+  const upRightCol = col + 1;
+
+  getMovesHelper(upRow,upLeftCol);
+  getMovesHelper(upRow,upRightCol);
+
+  const downRow = row + 2;
+  const downLeftCol = col - 1;
+  const downRightCol = col + 1;
+
+  getMovesHelper(downRow,downLeftCol);
+  getMovesHelper(downRow,downRightCol);
+  
+
+  const rightCol = col + 2;
+  const rightUpRow = row -1;
+  const rightDownRow = row + 1;
+
+  getMovesHelper(rightUpRow,rightCol);
+  getMovesHelper(rightDownRow,rightCol);
+
+  const leftCol = col - 2;
+  const leftUpRow = row -1;
+  const leftDownRow = row + 1;
+
+  getMovesHelper(leftUpRow,leftCol);
+  getMovesHelper(leftDownRow,leftCol);
+
+
+  return moves;
 };
 
 const getMovesR = (state: gameState, [row, col]: [number, number]) => {
