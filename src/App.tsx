@@ -2,8 +2,44 @@ import "./App.css";
 import * as React from "react";
 import { Board } from "./View/Board";
 import { figType } from "./View/Figure";
+import { useState } from "react";
+import { parseFEN } from "./Model/Parser";
+import { getMoves } from "./Model/Moves";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
+
+const PlaceHolderIncomingFEN =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export const assignedColor = "w";
+
+export type gameState = {
+  board: figType[][];
+  isWhiteTurn: boolean;
+  /**
+   * KQkq
+   * Die Buchstaben, die nicht mehr möglichen Rochaden entsprechen,
+   * werden ausgelassen, und der Strich „-“ wird dann und nur dann
+   * geschrieben, wenn keine der vier Rochaden mehr möglich ist.
+   */
+  castleRight: string;
+  /**
+   * Sofern im letzten Zug ein Bauer zwei Felder vorgerückt ist,
+   * wird das übersprungene Feld angegeben, unabhängig davon,
+   * ob ein en-passant-Schlag auf dieses Feld tatsächlich möglich ist oder nicht.
+   * Nach Bauer f2–>f4 wird in der FEN in der 4. Gruppe „f3“ angegeben.
+   */
+  enPassant: string;
+  /**
+   * Beginnt mit 0 und wird bei jedem Halbzug, bei dem kein Bauer bewegt
+   * oder eine Figur geschlagen wurde, um 1 erhöht.
+   * -> 50-Züge-Regel: Remi-Antrag, wenn diese Zahl 100 ist. Remi bei 150.
+   */
+  halfmoveClock: string;
+  /**
+   * Beginnt mit 1 und wird nach jedem Zug von schwarz um 1 erhöht
+   */
+  fullmoveCount: string;
+};
 
 function App() {
   // fuer Server Kommunikation
@@ -15,20 +51,30 @@ function App() {
   //   console.log("Message from server: \n" + message);
   // };
 
-  const exampleFEN =
-    "rnbqk1nr/pppp2pp/3P4/1P2Nb2/2BBpPp1/1QQQ4/P2PP1PP/R1BQK1NR";
+  const splittedFEN = PlaceHolderIncomingFEN.split(/\s+/);
+  const [state, setState] = useState<gameState>({
+    board: parseFEN(splittedFEN[0]),
+    isWhiteTurn: splittedFEN[1] === "w",
+    castleRight: splittedFEN[2],
+    enPassant: splittedFEN[3],
+    halfmoveClock: splittedFEN[4],
+    fullmoveCount: splittedFEN[5],
+  });
+
+  const moves = getMoves(state);
+  console.log("Moves: ", moves);
 
   return (
     <>
-      <div className="login" onClick={handleClick}>
+      <div className="login" onClick={login}>
         {"Login"}
       </div>
-      <Board board={parseFEN(exampleFEN)} />
+      <Board board={state.board} />
     </>
   );
 }
 
-const handleClick = () => {
+const login = () => {
   // fuer Server Kommunikation
   // ws.send(
   //   JSON.stringify({
@@ -36,33 +82,6 @@ const handleClick = () => {
   //     username: "Gruppe AI",
   //   })
   // );
-};
-
-const parseFEN = (fen: string): figType[][] => {
-  const board = Array.from(Array(8), () => new Array(8));
-  const rows = fen.split("/");
-  if (rows.length === 8) {
-    let rowNo = 0;
-    for (const row of rows) {
-      let colNo = 0;
-      for (let i = 0; i < row.length; i++) {
-        let numberFields = parseInt(row[i]);
-        if (isNaN(numberFields)) {
-          board[rowNo][colNo] = row[i];
-        } else {
-          for (let n = 0; n < numberFields; n++) {
-            board[rowNo][colNo + n] = "";
-          }
-          if (numberFields > 1) {
-            colNo += --numberFields;
-          }
-        }
-        colNo++;
-      }
-      rowNo++;
-    }
-  }
-  return board;
 };
 
 export default App;

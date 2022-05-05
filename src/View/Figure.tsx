@@ -35,7 +35,7 @@ export const Figure = (props: FigureProps) => {
     left: (props.col - 1) * 50,
   };
 
-  console.log("figType,col,row:", props.fig, props.col, props.row);
+  // console.log("figType,col,row:", props.fig, props.col, props.row);
   return (
     <div
       className={`chess-figure ${props.fig.toLowerCase() + isWhite(props.fig)}`}
