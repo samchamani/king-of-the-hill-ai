@@ -30,5 +30,12 @@ export const toFEN = (board: figType[][]) => {
 };
 
 export function makeField(row: number, col: number) {
-  return rowNames[row] + colNames[col];
+  return colNames[col] + rowNames[row];
+}
+
+export function makeIndex(pos: string) {
+  if (pos.length !== 2) return [-1, -1];
+  // pos[0]
+  // const pos2 = [...pos];
+  return [rowNames.indexOf(pos[1]), colNames.indexOf(pos[0])];
 }
