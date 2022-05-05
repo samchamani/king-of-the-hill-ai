@@ -9,7 +9,7 @@ import { getMoves } from "./Model/Moves";
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
 const PlaceHolderIncomingFEN =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  "rnbqkbnr/p1pppppp/8/PpP5/8/8/PPPPPPPP/RNBQKBNR w KQkq b6 0 1";
 export const assignedColor = "w";
 
 export type gameState = {

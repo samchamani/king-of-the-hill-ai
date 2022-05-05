@@ -1,7 +1,8 @@
 import { gameState } from "../App";
 // import { figType } from "../View/Figure";
 import { isIndexOnBoard, isWhite, isEmpty, isBeatable } from "./Utils";
-import { makeField } from "./Parser";
+import { makeField, makeIndex } from "./Parser";
+import { getConfigFileParsingDiagnostics } from "typescript";
 
 export const getMoves = (state: gameState) => {
   let moves: string[] = [];
@@ -45,6 +46,7 @@ const getMovesFor = (state: gameState, [row, col]: [string, string]) => {
 // TODO: implement move rools
 // Ist der Ansatz gut? Eventuell hier schon Bewertungsfunktion anwenden.
 // Eventuell FEN oder Folgestate mitausgeben für KI
+
 const getMovesP = (state: gameState, [row, col]: [number, number]) => {
   let moves: string[] = [];
   const board = state.board;
@@ -53,31 +55,32 @@ const getMovesP = (state: gameState, [row, col]: [number, number]) => {
 
   // 1 Step vor:
   const oneAhead = row + colorFactor;
-  if (isIndexOnBoard(oneAhead)) {
-    if (isEmpty(board[oneAhead][col])) {
-      moves.push(fig + makeField(row, col) + "-" + makeField(oneAhead, col));
-    } else if (isBeatable(fig, board[oneAhead][col])) {
-      moves.push(fig + makeField(row, col) + "-" + makeField(oneAhead, col));
-    }
+  if (isIndexOnBoard(oneAhead) && isEmpty(board[oneAhead][col])) {
+    moves.push(fig + makeField(row, col) + "-" + makeField(oneAhead, col));
   }
 
-  // TODO: 2 Step vor:
+  // 2 Step vor aus Startposition:
+  // TODO: state =>  en Passant
   const twoAhead = row + colorFactor * 2;
-  if (isIndexOnBoard(twoAhead) && row + colorFactor * -2.5 === 3.5) {
-    if (isEmpty(board[twoAhead][col])) {
-      moves.push(fig + makeField(row, col) + "-" + makeField(twoAhead, col));
-    } else if (isBeatable(fig, board[twoAhead][col])) {
-      moves.push(fig + makeField(row, col) + "-" + makeField(twoAhead, col));
-    }
+  const isStartPos = row + colorFactor * 2.5 === 3.5;
+  if (
+    isStartPos &&
+    isEmpty(board[twoAhead][col]) &&
+    isEmpty(board[oneAhead][col])
+  ) {
+    moves.push(fig + makeField(row, col) + "-" + makeField(twoAhead, col));
   }
 
-  // TODO: schräger Schlagzug:
+  // TODO: schräger Schlagzug + en Passant:
 
-  const diaLeftRow = row + colorFactor * -1;
-  const diaLeftCol = col -1;
+  const diaLeftRow = row + colorFactor * 1;
+  const diaLeftCol = col - 1;
 
-  const diaRightRow = row + colorFactor * -1;
+  const diaRightRow = row + colorFactor * 1;
   const diaRightCol = col + 1;
+
+  const isEnPass = state.enPassant !== "-";
+  const [enPasRow, enPasCol]: number[] = makeIndex(state.enPassant);
 
   if (
     isIndexOnBoard(diaLeftCol, diaLeftRow) &&
@@ -85,7 +88,22 @@ const getMovesP = (state: gameState, [row, col]: [number, number]) => {
     isBeatable(fig, board[diaLeftRow][diaLeftCol])
   ) {
     moves.push(
-      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
+      fig + makeField(row, col) + "x" + makeField(diaLeftRow, diaLeftCol)
+    );
+  } else if (
+    isEnPass &&
+    isIndexOnBoard(diaLeftCol, diaLeftRow) &&
+    isEmpty(board[diaLeftRow][diaLeftCol]) &&
+    isBeatable(fig, board[row][enPasCol]) &&
+    diaLeftRow === enPasRow &&
+    diaLeftCol === enPasCol
+  ) {
+    moves.push(
+      "ENPASSANT: " +
+        fig +
+        makeField(row, col) +
+        "x" +
+        makeField(diaLeftRow, diaLeftCol)
     );
   }
 
@@ -95,36 +113,27 @@ const getMovesP = (state: gameState, [row, col]: [number, number]) => {
     isBeatable(fig, board[diaRightRow][diaRightCol])
   ) {
     moves.push(
-      fig + makeField(row, col) + "-" + makeField(diaRightRow, diaRightCol)
+      fig + makeField(row, col) + "x" + makeField(diaRightRow, diaRightCol)
     );
-  }
-
-
-  // TODO: En Passant:
-  const passLeftCol = col - 1;
-  const passRightCol = col +1;
-
-  if (
-    isIndexOnBoard(diaLeftCol, diaLeftRow, passLeftCol) &&
-    isEmpty(board[diaLeftRow][diaLeftCol]) &&
-    isBeatable(fig, board[row][passLeftCol])
-  ) {
-    moves.push(
-      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
-    );
-  }
-
-  if (
-    isIndexOnBoard(diaRightCol, diaRightRow, passRightCol) &&
+  } else if (
+    isEnPass &&
+    isIndexOnBoard(diaRightCol, diaRightRow) &&
     isEmpty(board[diaRightRow][diaRightCol]) &&
-    isBeatable(fig, board[row][passRightCol])
+    isBeatable(fig, board[row][enPasCol]) &&
+    diaRightRow === enPasRow &&
+    diaRightCol === enPasCol
   ) {
     moves.push(
-      fig + makeField(row, col) + "-" + makeField(diaLeftRow, diaLeftCol)
+      "ENPASSANT: " +
+        fig +
+        makeField(row, col) +
+        "x" +
+        makeField(diaRightRow, diaRightCol)
     );
-  } 
-  
+  }
   return moves;
+
+  //TODO: Bauer in letzter Gegnerreihe => Umwandlung in beliebigen Stein: wie notieren?
 };
 
 const getMovesB = (state: gameState, [row, col]: [number, number]) => {
