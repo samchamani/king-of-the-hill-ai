@@ -4,6 +4,19 @@ export const isWhite = (str: string | figType) => {
   return str.toUpperCase() === str;
 };
 
-export const isIndexOnBoard = (num: number) => {
-  return num >= 0 && num <= 7;
+export const isIndexOnBoard = (...nums: number[]) => {
+  for (const n of nums) {
+    if (!(n >= 0 && n <= 7)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+export const isEmpty = (fig: figType) => {
+  return fig === "";
+};
+
+export const isBeatable = (fig1: figType, fig2: figType) => {
+  return isWhite(fig1) !== isWhite(fig2);
 };
