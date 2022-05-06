@@ -153,5 +153,51 @@ const getMovesQ = (state: gameState, [row, col]: [number, number]) => {
 };
 
 const getMovesK = (state: gameState, [row, col]: [number, number]) => {
-  return "";
+  let moves: string[] = [];
+  const board = state.board;
+  const fig = board[row][col];
+
+  const getMovesHelper = (newRow: number, newCol: number) => {
+    if (isIndexOnBoard(newRow, newCol)) {
+      if (isEmpty(board[newRow][newCol])) {
+        moves.push(
+          fig + makeField(row, col) + "-" + makeField(newRow, newCol)
+        );
+      } else if (isBeatable(fig, board[newRow][newCol])) {
+        moves.push(
+          fig + makeField(row, col) + "x" + makeField(newRow, newCol)
+        );
+      }
+    }
+  };
+
+  //move up
+  const upRow = row - 1;
+  const rightCol = col +1 ;
+  const leftCol = col - 1;
+  const downRow = row + 1;
+  getMovesHelper(upRow,col);
+
+  //move up right
+  getMovesHelper(upRow,rightCol);
+
+  //move up left
+  getMovesHelper(upRow,leftCol);
+
+  //move right
+  getMovesHelper(row,rightCol);
+
+  //move left
+  getMovesHelper(row, leftCol)
+
+  //move down
+  getMovesHelper(downRow, col);
+
+  // move down right
+  getMovesHelper(downRow,rightCol);
+
+  //move down left
+  getMovesHelper(downRow,leftCol);
+
+  return moves;
 };
