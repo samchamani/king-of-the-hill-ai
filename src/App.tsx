@@ -4,7 +4,7 @@ import { Board } from "./View/Board";
 import { figType } from "./View/Figure";
 import { useState } from "react";
 import { parseFEN } from "./Model/Parser";
-import { getMoves } from "./Model/Moves";
+import { Moves } from "./Model/Moves";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
@@ -60,8 +60,7 @@ function App() {
     halfmoveClock: parseInt(splittedFEN[4]),
     fullmoveCount: parseInt(splittedFEN[5]),
   });
-
-  const moves = getMoves(state);
+  const moves = new Moves(state).getMoves();
   console.log("Moves: ", moves);
 
   return (
