@@ -129,9 +129,7 @@ export class Moves {
       !isEmpty(board[diaRightRow][diaRightCol]) &&
       isBeatable(fig, board[diaRightRow][diaRightCol])
     ) {
-      moves.push(
-        this.createMove(row, col, diaRightRow, diaRightCol, true)
-      );
+      moves.push(this.createMove(row, col, diaRightRow, diaRightCol, true));
     } else if (
       isEnPass &&
       isIndexOnBoard(diaRightCol, diaRightRow) &&
@@ -140,9 +138,7 @@ export class Moves {
       diaRightRow === enPasRow &&
       diaRightCol === enPasCol
     ) {
-      moves.push(
-        this.createMove(row, col, diaRightRow, diaRightCol, true)
-      );
+      moves.push(this.createMove(row, col, diaRightRow, diaRightCol, true));
     }
     return moves;
 
@@ -187,8 +183,6 @@ export class Moves {
 
   getMovesK([row, col]: [number, number]) {
     let moves: moveType[] = [];
-    const board = this.state.board;
-    const fig = board[row][col];
 
     const upRow = row - 1;
     const rightCol = col + 1;
@@ -205,20 +199,28 @@ export class Moves {
       [downRow, leftCol],
     ];
 
-    const getMovesHelper = (newRow: number, newCol: number) => {
-      if (isIndexOnBoard(newRow, newCol)) {
-        if (isEmpty(board[newRow][newCol])) {
-          moves.push(this.createMove(row, col, newRow, newCol));
-        } else if (isBeatable(fig, board[newRow][newCol])) {
-          moves.push(this.createMove(row, col, newRow, newCol, true));
-        }
-      }
-    };
     for (const pos of nextPos) {
-      getMovesHelper(pos[0], pos[1]);
+      moves.push(this.getMovesHelper(col, row, pos[0], pos[1])!);
     }
     return moves;
   }
+
+  getMovesHelper = (
+    row: number,
+    col: number,
+    newRow: number,
+    newCol: number
+  ) => {
+    if (isIndexOnBoard(newRow, newCol)) {
+      if (isEmpty(this.state.board[newRow][newCol])) {
+        return this.createMove(row, col, newRow, newCol);
+      } else if (
+        isBeatable(this.state.board[row][col], this.state.board[newRow][newCol])
+      ) {
+        return this.createMove(row, col, newRow, newCol, true);
+      }
+    }
+  };
 
   /**
    * Get all moves in a given direction
@@ -240,9 +242,7 @@ export class Moves {
       isIndexOnBoard(col + xDir * x, row + yDir * y) &&
       isEmpty(board[row + yDir * y][col + xDir * x])
     ) {
-      moves.push(
-        this.createMove(row, col, row + yDir * y, col + xDir * x)
-      );
+      moves.push(this.createMove(row, col, row + yDir * y, col + xDir * x));
       x += 1;
       y += 1;
     }
@@ -259,8 +259,6 @@ export class Moves {
 
   getMovesLikeL(row: number, col: number) {
     let moves: moveType[] = [];
-    const board = this.state.board;
-    const fig = board[row][col];
     const nextPos = [
       [row - 2, col - 1],
       [row - 2, col + 1],
@@ -274,13 +272,7 @@ export class Moves {
     for (const pos of nextPos) {
       const newRow = pos[0];
       const newCol = pos[1];
-      if (isIndexOnBoard(newRow, newCol)) {
-        if (isEmpty(board[newRow][newCol])) {
-          moves.push(this.createMove(row, col, newRow, newCol));
-        } else if (isBeatable(fig, board[newRow][newCol])) {
-          moves.push(this.createMove(row, col, newRow, newCol, true));
-        }
-      }
+      moves.push(this.getMovesHelper(row, col, newRow, newCol)!);
     }
     return moves;
   }
