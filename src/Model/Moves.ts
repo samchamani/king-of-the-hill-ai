@@ -182,7 +182,38 @@ const getMovesQ = (state: gameState, [row, col]: [number, number]) => {
 };
 
 const getMovesK = (state: gameState, [row, col]: [number, number]) => {
-  return [];
+  let moves: moveType[] = [];
+  const board = state.board;
+  const fig = board[row][col];
+
+  const upRow = row - 1;
+  const rightCol = col + 1;
+  const leftCol = col - 1;
+  const downRow = row + 1;
+  const nextPos = [
+    [upRow, col],
+    [upRow, rightCol],
+    [upRow, leftCol],
+    [row, rightCol],
+    [row, leftCol],
+    [downRow, col],
+    [downRow, rightCol],
+    [downRow, leftCol],
+  ];
+
+  const getMovesHelper = (newRow: number, newCol: number) => {
+    if (isIndexOnBoard(newRow, newCol)) {
+      if (isEmpty(board[newRow][newCol])) {
+        moves.push(createMove(fig, state, row, col, newRow, newCol));
+      } else if (isBeatable(fig, board[newRow][newCol])) {
+        moves.push(createMove(fig, state, row, col, newRow, newCol, true));
+      }
+    }
+  };
+  for (const pos of nextPos) {
+    getMovesHelper(pos[0], pos[1]);
+  }
+  return moves;
 };
 
 /**
