@@ -186,6 +186,21 @@ const getMovesK = (state: gameState, [row, col]: [number, number]) => {
   const board = state.board;
   const fig = board[row][col];
 
+  const upRow = row - 1;
+  const rightCol = col + 1;
+  const leftCol = col - 1;
+  const downRow = row + 1;
+  const nextPos = [
+    [upRow, col],
+    [upRow, rightCol],
+    [upRow, leftCol],
+    [row, rightCol],
+    [row, leftCol],
+    [downRow, col],
+    [downRow, rightCol],
+    [downRow, leftCol],
+  ];
+
   const getMovesHelper = (newRow: number, newCol: number) => {
     if (isIndexOnBoard(newRow, newCol)) {
       if (isEmpty(board[newRow][newCol])) {
@@ -195,35 +210,9 @@ const getMovesK = (state: gameState, [row, col]: [number, number]) => {
       }
     }
   };
-
-  //move up
-  const upRow = row - 1;
-  const rightCol = col + 1;
-  const leftCol = col - 1;
-  const downRow = row + 1;
-  getMovesHelper(upRow, col);
-
-  //move up right
-  getMovesHelper(upRow, rightCol);
-
-  //move up left
-  getMovesHelper(upRow, leftCol);
-
-  //move right
-  getMovesHelper(row, rightCol);
-
-  //move left
-  getMovesHelper(row, leftCol);
-
-  //move down
-  getMovesHelper(downRow, col);
-
-  // move down right
-  getMovesHelper(downRow, rightCol);
-
-  //move down left
-  getMovesHelper(downRow, leftCol);
-
+  for (const pos of nextPos) {
+    getMovesHelper(pos[0], pos[1]);
+  }
   return moves;
 };
 
