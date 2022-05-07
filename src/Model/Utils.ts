@@ -1,3 +1,4 @@
+import { gameState } from "../App";
 import { figType } from "../View/Figure";
 
 export const isWhite = (str: string | figType) => {
@@ -24,4 +25,20 @@ export const isEmpty = (fig: figType) => {
 export const isBeatable = (fig1: figType, fig2: figType) => {
   if (isEmpty(fig1) || isEmpty(fig2)) return false;
   return isWhite(fig1) !== isWhite(fig2);
+};
+
+export const isKingOfTheHill = (state: gameState) => {
+  const hills = [
+    [3, 3],
+    [3, 4],
+    [4, 3],
+    [4, 4],
+  ];
+
+  for (const hill of hills) {
+    if (state.board[hill[0]][hill[1]].toUpperCase() === "K") {
+      return true;
+    }
+  }
+  return false;
 };
