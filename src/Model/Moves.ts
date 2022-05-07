@@ -9,6 +9,7 @@ export type moveType = {
   newState: gameState;
   value: number;
   isCheckMove: boolean;
+  isKingOnTheHillMove: boolean
 };
 
 /**
@@ -332,6 +333,11 @@ export class Moves {
         return this.createMove({
           ...options,
           isHit: true,
+          isKingOnTheHillMove: isKingOnTheHill(
+            this.state.board[row][col],
+            newRow,
+            newCol
+          ),
         });
       }
     }
@@ -413,6 +419,7 @@ export class Moves {
   createMove(
     options: moveOptions & {
       isHit?: boolean;
+      isKingOnTheHillMove?:boolean,
     }
   ) {
     const [row, col] = options.moveFrom;
@@ -428,6 +435,7 @@ export class Moves {
       newState: updatedState,
       value: evaluateBoard(updatedState.board, isW),
       isCheckMove: isCheck(updatedState, isW) ? true : false,
+      isKingOnTheHillMove: !!options.isKingOnTheHillMove
     };
     return move;
   }
@@ -637,6 +645,13 @@ export function isHalfmoveRemi(state: gameState) {
   const isRemi = state.halfmoveClock >= 100;
   if (isRemi) console.log(`Remi because of 50-moves-rule!`);
   return isRemi;
+}
+
+export function isKingOnTheHill(fig: figType, row: number, col: number) {
+  if (fig.toUpperCase() === "K") {
+    return (row === 3 || row === 4) && (col === 3 || col === 4);
+  }
+  return false;
 }
 
 export interface moveOptions {
