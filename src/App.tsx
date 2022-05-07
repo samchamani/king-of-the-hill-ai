@@ -9,7 +9,7 @@ import { Moves } from "./Model/Moves";
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
 const PlaceHolderIncomingFEN =
-  "rnbqkbnr/pppppppp/8/PpP5/5P2/8/P1P1P1PP/RNBQKBNR w KQkq b6 0 1";
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
 export const assignedColor: string = "w";
 
 export type gameState = {
@@ -60,6 +60,7 @@ function App() {
     halfmoveClock: parseInt(splittedFEN[4]),
     fullmoveCount: parseInt(splittedFEN[5]),
   });
+
   const moves = new Moves(state).getMoves();
   console.log("Moves: ", moves);
 

@@ -8,6 +8,8 @@ import { isWhite } from "./Utils";
  * @param playsWhite
  * @returns
  */
+
+// TODO: Punkte für Matt setzen
 export const evaluateBoard = (board: figType[][], playsWhite: boolean) => {
   let sum = 0;
   for (const row of board) {

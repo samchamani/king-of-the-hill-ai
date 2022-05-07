@@ -35,7 +35,5 @@ export function makeField(row: number, col: number) {
 
 export function makeIndex(pos: string) {
   if (pos.length !== 2) return [-1, -1];
-  // pos[0]
-  // const pos2 = [...pos];
   return [rowNames.indexOf(pos[1]), colNames.indexOf(pos[0])];
 }

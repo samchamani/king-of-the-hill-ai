@@ -8,8 +8,12 @@ export type moveType = {
   move: string;
   newState: gameState;
   value: number;
-  // isMateMove: boolean
+  isMateMove: boolean;
 };
+
+/**
+ * class that creates a list of all possible moves from a given state
+ */
 export class Moves {
   state: gameState;
 
@@ -28,7 +32,7 @@ export class Moves {
         }
       }
     }
-    return moves;
+    return moves.filter((o) => !o.isMateMove);
   }
 
   getMovesFor([row, col]: [string, string]) {
@@ -59,35 +63,38 @@ export class Moves {
     return moves;
   }
 
-  // TODO: implement move rools
-  // Ist der Ansatz gut? Eventuell hier schon Bewertungsfunktion anwenden.
-  // Eventuell FEN oder Folgestate mitausgeben für KI
-
   getMovesP([row, col]: [number, number]) {
     let moves: moveType[] = [];
     const board = this.state.board;
     const fig = board[row][col];
     const colorFactor = isWhite(fig) ? -1 : 1;
-
+    const doPromotion = (toRow: number, toCol: number, isHit: boolean) => {
+      const promos = ["Q", "R", "B", "N"];
+      for (const promo of promos) {
+        moves.push(
+          this.createMove({
+            moveFrom: [row, col],
+            moveTo: [toRow, toCol],
+            isHit: isHit,
+            promotionAs: promo as "Q" | "R" | "B" | "N" | undefined,
+          })
+        );
+      }
+    };
     // 1 Step vor:
     const oneAhead = row + colorFactor;
     if (isIndexOnBoard(oneAhead) && isEmpty(board[oneAhead][col])) {
-      moves.push(
-        this.createMove(
-          // updateState(state, {
-          //   moveFrom: [row, col],
-          //   moveTo: [oneAhead, col],
-          // }),
-          row,
-          col,
-          oneAhead,
-          col
-        )
-      );
+      oneAhead === 0 || oneAhead === 7
+        ? doPromotion(oneAhead, col, false)
+        : moves.push(
+            this.createMove({
+              moveFrom: [row, col],
+              moveTo: [oneAhead, col],
+            })
+          );
     }
 
     // 2 Step vor aus Startposition:
-    // TODO: state =>  en Passant
     const twoAhead = row + colorFactor * 2;
     const isStartPos = row + colorFactor * 2.5 === 3.5;
     if (
@@ -95,7 +102,13 @@ export class Moves {
       isEmpty(board[twoAhead][col]) &&
       isEmpty(board[oneAhead][col])
     ) {
-      moves.push(this.createMove(row, col, twoAhead, col));
+      moves.push(
+        this.createMove({
+          moveFrom: [row, col],
+          moveTo: [twoAhead, col],
+          didPWalk2: true,
+        })
+      );
     }
 
     // schräger Schlagzug + en Passant:
@@ -113,7 +126,15 @@ export class Moves {
       !isEmpty(board[diaLeftRow][diaLeftCol]) &&
       isBeatable(fig, board[diaLeftRow][diaLeftCol])
     ) {
-      moves.push(this.createMove(row, col, diaLeftRow, diaLeftCol, true));
+      oneAhead === 0 || oneAhead === 7
+        ? doPromotion(diaLeftRow, diaLeftCol, true)
+        : moves.push(
+            this.createMove({
+              moveFrom: [row, col],
+              moveTo: [diaLeftRow, diaLeftCol],
+              isHit: true,
+            })
+          );
     } else if (
       isEnPass &&
       isIndexOnBoard(diaLeftCol, diaLeftRow) &&
@@ -122,14 +143,29 @@ export class Moves {
       diaLeftRow === enPasRow &&
       diaLeftCol === enPasCol
     ) {
-      moves.push(this.createMove(row, col, diaLeftRow, diaLeftCol, true));
+      moves.push(
+        this.createMove({
+          moveFrom: [row, col],
+          moveTo: [diaLeftRow, diaLeftCol],
+          isHit: true,
+          didEnPassKill: true,
+        })
+      );
     }
     if (
       isIndexOnBoard(diaRightCol, diaRightRow) &&
       !isEmpty(board[diaRightRow][diaRightCol]) &&
       isBeatable(fig, board[diaRightRow][diaRightCol])
     ) {
-      moves.push(this.createMove(row, col, diaRightRow, diaRightCol, true));
+      oneAhead === 0 || oneAhead === 7
+        ? doPromotion(diaRightRow, diaRightCol, true)
+        : moves.push(
+            this.createMove({
+              moveFrom: [row, col],
+              moveTo: [diaRightRow, diaRightCol],
+              isHit: true,
+            })
+          );
     } else if (
       isEnPass &&
       isIndexOnBoard(diaRightCol, diaRightRow) &&
@@ -138,19 +174,27 @@ export class Moves {
       diaRightRow === enPasRow &&
       diaRightCol === enPasCol
     ) {
-      moves.push(this.createMove(row, col, diaRightRow, diaRightCol, true));
+      moves.push(
+        this.createMove({
+          moveFrom: [row, col],
+          moveTo: [diaRightRow, diaRightCol],
+          isHit: true,
+          didEnPassKill: true,
+        })
+      );
     }
     return moves;
 
-    //TODO: Bauer in letzter Gegnerreihe => Umwandlung in beliebigen Stein: wie notieren?
+    //TODO: Check if Promotion Notation is correct
+    // If special notation needed then parser needs to be changed too
   }
 
   getMovesB([row, col]: [number, number]) {
     return [
-      ...this.getAllMovesInDir(1, 1, row, col),
-      ...this.getAllMovesInDir(1, -1, row, col),
-      ...this.getAllMovesInDir(-1, 1, row, col),
-      ...this.getAllMovesInDir(-1, -1, row, col),
+      ...this.getAllMovesInDir({ moveTo: [1, 1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [1, -1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [-1, 1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [-1, -1], moveFrom: [row, col] }),
     ];
   }
 
@@ -158,26 +202,55 @@ export class Moves {
     return this.getMovesLikeL(row, col);
   }
 
-  //TODO: Rochade
   getMovesR([row, col]: [number, number]) {
+    const board = this.state.board;
+    const isW = isWhite(board[row][col]);
+    const longCastle = isW ? "Q" : "q";
+    const shortCastle = isW ? "K" : "k";
+    let lostLongCastle = false;
+    let lostShortCastle = false;
+    if (col === 0 && this.state.castleRight.includes(longCastle))
+      lostLongCastle = true;
+    if (col === 7 && this.state.castleRight.includes(shortCastle))
+      lostShortCastle = true;
     return [
-      ...this.getAllMovesInDir(1, 0, row, col),
-      ...this.getAllMovesInDir(-1, 0, row, col),
-      ...this.getAllMovesInDir(0, 1, row, col),
-      ...this.getAllMovesInDir(0, -1, row, col),
+      ...this.getAllMovesInDir({
+        moveTo: [1, 0],
+        moveFrom: [row, col],
+        lostLongCastle: lostLongCastle,
+        lostShortCastle: lostShortCastle,
+      }),
+      ...this.getAllMovesInDir({
+        moveTo: [-1, 0],
+        moveFrom: [row, col],
+        lostLongCastle: lostLongCastle,
+        lostShortCastle: lostShortCastle,
+      }),
+      ...this.getAllMovesInDir({
+        moveTo: [0, 1],
+        moveFrom: [row, col],
+        lostLongCastle: lostLongCastle,
+        lostShortCastle: lostShortCastle,
+      }),
+      ...this.getAllMovesInDir({
+        moveTo: [0, -1],
+        moveFrom: [row, col],
+        lostLongCastle: lostLongCastle,
+        lostShortCastle: lostShortCastle,
+      }),
     ];
   }
 
   getMovesQ([row, col]: [number, number]) {
     return [
-      ...this.getAllMovesInDir(1, 1, row, col),
-      ...this.getAllMovesInDir(1, -1, row, col),
-      ...this.getAllMovesInDir(-1, 1, row, col),
-      ...this.getAllMovesInDir(-1, -1, row, col),
-      ...this.getAllMovesInDir(1, 0, row, col),
-      ...this.getAllMovesInDir(-1, 0, row, col),
-      ...this.getAllMovesInDir(0, 1, row, col),
-      ...this.getAllMovesInDir(0, -1, row, col),
+      ...this.getAllMovesInDir({ moveTo: [1, 1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [1, -1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [-1, 1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [-1, -1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [1, 0], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [-1, 0], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [0, 1], moveFrom: [row, col] }),
+      ...this.getAllMovesInDir({ moveTo: [0, -1], moveFrom: [row, col] }),
     ];
   }
 
@@ -199,25 +272,68 @@ export class Moves {
       [downRow, leftCol],
     ];
 
+    const board = this.state.board;
+    const isW = isWhite(board[row][col]);
+    const longCastle = isW ? "Q" : "q";
+    const shortCastle = isW ? "K" : "k";
+    const canLongCastle = this.state.castleRight.includes(longCastle);
+    const canShortCastle = this.state.castleRight.includes(shortCastle);
+
     for (const pos of nextPos) {
-      moves.push(this.getMovesHelper(col, row, pos[0], pos[1])!);
+      const newMove = this.getMovesHelper({
+        moveFrom: [row, col],
+        moveTo: [pos[0], pos[1]],
+        lostLongCastle: canLongCastle,
+        lostShortCastle: canShortCastle,
+      });
+      newMove ? moves.push(newMove) : null;
     }
+    const isNotMate = !isMate(this.state, isW as boolean);
+    if (
+      canShortCastle &&
+      board[row][5] === "" &&
+      board[row][6] === "" &&
+      isNotMate
+    )
+      moves.push(
+        this.createMove({
+          moveFrom: [row, col],
+          moveTo: [row, 6],
+          didShortCastle: true,
+        })
+      );
+
+    if (
+      canLongCastle &&
+      board[row][1] === "" &&
+      board[row][2] === "" &&
+      board[row][3] === "" &&
+      isNotMate
+    )
+      moves.push(
+        this.createMove({
+          moveFrom: [row, col],
+          moveTo: [row, 2],
+          didLongCastle: true,
+        })
+      );
+
     return moves;
   }
 
-  getMovesHelper = (
-    row: number,
-    col: number,
-    newRow: number,
-    newCol: number
-  ) => {
+  getMovesHelper = (options: moveOptions) => {
+    const [newRow, newCol] = options.moveTo;
+    const [row, col] = options.moveFrom;
     if (isIndexOnBoard(newRow, newCol)) {
       if (isEmpty(this.state.board[newRow][newCol])) {
-        return this.createMove(row, col, newRow, newCol);
+        return this.createMove(options);
       } else if (
         isBeatable(this.state.board[row][col], this.state.board[newRow][newCol])
       ) {
-        return this.createMove(row, col, newRow, newCol, true);
+        return this.createMove({
+          ...options,
+          isHit: true,
+        });
       }
     }
   };
@@ -231,18 +347,26 @@ export class Moves {
    * @param state
    * @returns
    */
-  getAllMovesInDir(xDir: number, yDir: number, row: number, col: number) {
+  getAllMovesInDir(options: moveOptions) {
     let moves: moveType[] = [];
     let x = 1;
     let y = 1;
+    const [row, col] = options.moveFrom;
+    const [xDir, yDir] = options.moveTo;
     const board = this.state.board;
     const fig = board[row][col];
-    const isW = isWhite(fig);
     while (
       isIndexOnBoard(col + xDir * x, row + yDir * y) &&
       isEmpty(board[row + yDir * y][col + xDir * x])
     ) {
-      moves.push(this.createMove(row, col, row + yDir * y, col + xDir * x));
+      moves.push(
+        this.createMove(
+          Object.assign({}, options, {
+            moveFrom: [row, col],
+            moveTo: [row + yDir * y, col + xDir * x],
+          })
+        )
+      );
       x += 1;
       y += 1;
     }
@@ -251,7 +375,13 @@ export class Moves {
       isBeatable(fig, board[row + yDir * y][col + xDir * x])
     ) {
       moves.push(
-        this.createMove(row, col, row + yDir * y, col + xDir * x, true)
+        this.createMove(
+          Object.assign({}, options, {
+            moveFrom: [row, col],
+            moveTo: [row + yDir * y, col + xDir * x],
+            isHit: true,
+          })
+        )
       );
     }
     return moves;
@@ -272,200 +402,78 @@ export class Moves {
     for (const pos of nextPos) {
       const newRow = pos[0];
       const newCol = pos[1];
-      moves.push(this.getMovesHelper(row, col, newRow, newCol)!);
+      const newMove = this.getMovesHelper({
+        moveFrom: [row, col],
+        moveTo: [newRow, newCol],
+      });
+      newMove ? moves.push(newMove) : null;
     }
     return moves;
   }
 
-  isMate(isWhiteKing: boolean) {
-    const kingsPos = this.searchFirst(isWhiteKing ? "K" : "k");
-    if (kingsPos === undefined || kingsPos.length !== 2) {
-      console.log("No king found!!");
-      return;
-    }
-    return this.checkDanger(kingsPos[0], kingsPos[1]);
-  }
-
-  checkDanger(row: number, col: number) {
-    return this.checkDangerLikeL(row, col) || this.checkDangerAllDir(row, col);
-  }
-
-  checkDangerLikeL(row: number, col: number) {
-    const board = this.state.board;
-    const fig = board[row][col];
-    const nextPos = [
-      [row - 2, col - 1],
-      [row - 2, col + 1],
-      [row + 2, col - 1],
-      [row + 2, col + 1],
-      [row - 1, col + 2],
-      [row + 1, col + 2],
-      [row - 1, col - 2],
-      [row + 1, col - 2],
-    ];
-    for (const pos of nextPos) {
-      const newRow = pos[0];
-      const newCol = pos[1];
-      if (
-        isIndexOnBoard(newRow, newCol) &&
-        isBeatable(fig, board[newRow][newCol]) &&
-        fig.toUpperCase() === "N"
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  checkDangerAllDir(row: number, col: number) {
-    const allDir = [
-      {
-        xDir: 1,
-        yDir: 1,
-        dangerFrom: "QB",
-        pawnDanger: true,
-      },
-      {
-        xDir: 1,
-        yDir: -1,
-        dangerFrom: "QB",
-        pawnDanger: true,
-      },
-      {
-        xDir: -1,
-        yDir: 1,
-        dangerFrom: "QB",
-        pawnDanger: true,
-      },
-      {
-        xDir: -1,
-        yDir: -1,
-        dangerFrom: "QB",
-        pawnDanger: true,
-      },
-      {
-        xDir: 1,
-        yDir: 0,
-        dangerFrom: "QR",
-        pawnDanger: false,
-      },
-      {
-        xDir: 0,
-        yDir: 1,
-        dangerFrom: "QR",
-        pawnDanger: false,
-      },
-      {
-        xDir: -1,
-        yDir: 0,
-        dangerFrom: "QR",
-        pawnDanger: false,
-      },
-      {
-        xDir: 0,
-        yDir: -1,
-        dangerFrom: "QR",
-        pawnDanger: false,
-      },
-    ];
-    const board = this.state.board;
-    const fig = board[row][col];
-    for (const dir of allDir) {
-      let x = 1;
-      let y = 1;
-      while (
-        isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
-        isEmpty(board[row + dir.yDir * y][col + dir.xDir * x])
-      ) {
-        x += 1;
-        y += 1;
-      }
-      if (
-        isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
-        isBeatable(fig, board[row + dir.yDir * y][col + dir.xDir * x]) &&
-        (dir.dangerFrom.includes(
-          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()
-        ) ||
-          (x === 1 && y === 1 && dir.pawnDanger))
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  searchFirst(searchFig: figType) {
-    const fig = searchFig;
-    const board = this.state.board;
-    let figsPos = [];
-    for (const row in board) {
-      for (const col in board[row]) {
-        if (board[row][col] === fig) {
-          figsPos.push(parseInt(row), parseInt(col));
-          return figsPos;
-        }
-      }
-    }
-  }
-
   createMove(
-    row: number,
-    col: number,
-    toRow: number,
-    toCol: number,
-    isHit: boolean = false
+    options: moveOptions & {
+      isHit?: boolean;
+    }
   ) {
+    const [row, col] = options.moveFrom;
+    const [toRow, toCol] = options.moveTo;
+    const updatedState = this.updateState(options);
+    const isW = isWhite(this.state.board[row][col]) as boolean;
     const move: moveType = {
       move:
         this.state.board[row][col] +
         makeField(row, col) +
-        (isHit ? "x" : "-") +
+        (options.isHit ? "x" : "-") +
         makeField(toRow, toCol),
-      newState: this.state, //TODO: generate newState
-      value: evaluateBoard(
-        this.state.board,
-        isWhite(this.state.board[row][col]) as boolean
-      ),
+      newState: updatedState,
+      value: evaluateBoard(updatedState.board, isW),
+      isMateMove: isMate(updatedState, isW) ? true : false,
     };
     return move;
   }
 
-  updateState(options: {
-    moveFrom: number[]; //[row,col]
-    moveTo: number[]; //[toRow,toCol]
-    didPWalk2?: boolean;
-    didEnPassKill?: boolean;
-    didLongCastle?: boolean;
-    didShortCastle?: boolean;
-    didPawnMoveOrAnyDie?: boolean;
-  }) {
+  //   TODO: fix CastleRight update
+  updateState(options: moveOptions) {
     const fig = this.state.board[options.moveFrom[0]][options.moveFrom[1]];
     const isW = isWhite(fig);
     const colorFactor = isW ? -1 : 1;
-    let newBoard = Object.assign(this.state.board);
+    let newBoard = JSON.parse(JSON.stringify(this.state.board)); //TODO: Better way to create deep copy?
     let usedCastle = "";
     newBoard[options.moveFrom[0]][options.moveFrom[1]] = "";
     newBoard[options.moveTo[0]][options.moveTo[1]] = fig;
     if (options.didEnPassKill)
       newBoard[options.moveTo[0] - 1 * colorFactor][options.moveTo[1]] = "";
+    if (options.promotionAs) {
+      newBoard[options.moveTo[0]][options.moveTo[1]] = isW
+        ? options.promotionAs
+        : options.promotionAs.toLowerCase();
+    }
     if (options.didLongCastle) {
       isW
-        ? (newBoard[options.moveTo[0]][2] = "R")
-        : (newBoard[options.moveTo[0]][2] = "r");
+        ? (newBoard[options.moveTo[0]][3] = "R")
+        : (newBoard[options.moveTo[0]][3] = "r");
       newBoard[options.moveTo[0]][0] = "";
-      usedCastle = isW ? "Q" : "q";
+      usedCastle = isW ? "KQ" : "kq";
     }
     if (options.didShortCastle) {
       isW
         ? (newBoard[options.moveTo[0]][5] = "R")
         : (newBoard[options.moveTo[0]][5] = "r");
       newBoard[options.moveTo[0]][7] = "";
-      usedCastle = isW ? "K" : "k";
+      usedCastle = isW ? "KQ" : "kq";
     }
-    let newCastleRight =
-      usedCastle !== ""
-        ? this.state.castleRight.replace(usedCastle, "")
-        : this.state.castleRight;
+    if (options.lostLongCastle) usedCastle = isW ? "Q" : "q";
+    if (options.lostShortCastle) usedCastle = usedCastle + isW ? "K" : "k";
+    let newCastleRight = this.state.castleRight;
+    if (usedCastle !== "") {
+      newCastleRight = this.state.castleRight.replace(
+        usedCastle.length > 1
+          ? new RegExp([...usedCastle].join("|"))
+          : usedCastle,
+        ""
+      );
+    }
     const newState: gameState = {
       board: newBoard,
       isWhiteTurn: !this.state.isWhiteTurn,
@@ -482,4 +490,147 @@ export class Moves {
     };
     return newState;
   }
+}
+
+export function isMate(newState: gameState, isWhiteKing: boolean) {
+  const kingsPos = searchFirst(newState, isWhiteKing ? "K" : "k");
+  if (kingsPos === undefined || kingsPos.length !== 2) {
+    console.log("No king found!!");
+    return;
+  }
+  return (
+    checkDangerLikeL(newState, kingsPos[0], kingsPos[1]) ||
+    checkDangerAllDir(newState, kingsPos[0], kingsPos[1])
+  );
+}
+
+function checkDangerLikeL(state: gameState, row: number, col: number) {
+  const board = state.board;
+  const fig = board[row][col];
+  const nextPos = [
+    [row - 2, col - 1],
+    [row - 2, col + 1],
+    [row + 2, col - 1],
+    [row + 2, col + 1],
+    [row - 1, col + 2],
+    [row + 1, col + 2],
+    [row - 1, col - 2],
+    [row + 1, col - 2],
+  ];
+  for (const pos of nextPos) {
+    const newRow = pos[0];
+    const newCol = pos[1];
+    if (
+      isIndexOnBoard(newRow, newCol) &&
+      isBeatable(fig, board[newRow][newCol]) &&
+      fig.toUpperCase() === "N"
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function checkDangerAllDir(state: gameState, row: number, col: number) {
+  const allDir = [
+    {
+      xDir: 1,
+      yDir: 1,
+      dangerFrom: "QB",
+      pawnDanger: true,
+    },
+    {
+      xDir: 1,
+      yDir: -1,
+      dangerFrom: "QB",
+      pawnDanger: true,
+    },
+    {
+      xDir: -1,
+      yDir: 1,
+      dangerFrom: "QB",
+      pawnDanger: true,
+    },
+    {
+      xDir: -1,
+      yDir: -1,
+      dangerFrom: "QB",
+      pawnDanger: true,
+    },
+    {
+      xDir: 1,
+      yDir: 0,
+      dangerFrom: "QR",
+      pawnDanger: false,
+    },
+    {
+      xDir: 0,
+      yDir: 1,
+      dangerFrom: "QR",
+      pawnDanger: false,
+    },
+    {
+      xDir: -1,
+      yDir: 0,
+      dangerFrom: "QR",
+      pawnDanger: false,
+    },
+    {
+      xDir: 0,
+      yDir: -1,
+      dangerFrom: "QR",
+      pawnDanger: false,
+    },
+  ];
+  const board = state.board;
+  const fig = board[row][col];
+  for (const dir of allDir) {
+    let x = 1;
+    let y = 1;
+    while (
+      isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
+      isEmpty(board[row + dir.yDir * y][col + dir.xDir * x])
+    ) {
+      x += 1;
+      y += 1;
+    }
+    if (
+      isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
+      isBeatable(fig, board[row + dir.yDir * y][col + dir.xDir * x]) &&
+      (dir.dangerFrom.includes(
+        board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()
+      ) ||
+        (x === 1 && y === 1 && dir.pawnDanger))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function searchFirst(state: gameState, searchFig: figType) {
+  const fig = searchFig;
+  const board = state.board;
+  let figsPos = [];
+  for (const row in board) {
+    for (const col in board[row]) {
+      if (board[row][col] === fig) {
+        figsPos.push(parseInt(row), parseInt(col));
+        return figsPos;
+      }
+    }
+  }
+}
+
+export interface moveOptions {
+  moveFrom: number[]; //[row,col]
+  moveTo: number[]; //[toRow,toCol]
+  didPWalk2?: boolean;
+  didEnPassKill?: boolean;
+  didLongCastle?: boolean;
+  didShortCastle?: boolean;
+  lostLongCastle?: boolean;
+  lostShortCastle?: boolean;
+  didPawnMoveOrAnyDie?: boolean;
+  promotionAs?: "Q" | "R" | "B" | "N";
 }
