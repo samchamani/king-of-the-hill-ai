@@ -5,10 +5,12 @@ import { makeField, makeIndex } from "./Parser";
 import { evaluateBoard } from "./Evaluater";
 
 export type moveType = {
-  move: string;
+  toString: string;
   newState: gameState;
   value: number;
   isMateMove: boolean;
+  isHit: boolean;
+  figType: figType;
 };
 
 /**
@@ -421,7 +423,7 @@ export class Moves {
     const updatedState = this.updateState(options);
     const isW = isWhite(this.state.board[row][col]) as boolean;
     const move: moveType = {
-      move:
+      toString:
         this.state.board[row][col] +
         makeField(row, col) +
         (options.isHit ? "x" : "-") +
@@ -429,6 +431,8 @@ export class Moves {
       newState: updatedState,
       value: evaluateBoard(updatedState.board, isW),
       isMateMove: isMate(updatedState, isW) ? true : false,
+      isHit: !!options.isHit,
+      figType: this.state.board[row][col]
     };
     return move;
   }
@@ -619,6 +623,16 @@ function searchFirst(state: gameState, searchFig: figType) {
         return figsPos;
       }
     }
+  }
+}
+
+//every chosen move has to go through this function
+function halfMoveCounter(state: gameState, move: moveType) {
+  if (move.isHit || move.figType.toLowerCase() === "p") {
+    state.halfmoveClock = 0;
+    state.fullmoveCount = 0; // do we need fullMoveCount?? let's just manage one halfmove counter
+  } else {
+    state.halfmoveClock++;
   }
 }
 
