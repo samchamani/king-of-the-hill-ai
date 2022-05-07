@@ -1,6 +1,6 @@
 import { gameState } from "../App";
 import { figType } from "../View/Figure";
-import { isIndexOnBoard, isWhite, isEmpty, isBeatable } from "./Utils";
+import { isIndexOnBoard, isWhite, isEmpty, isBeatable, isCheck } from "./Utils";
 import { makeField, makeIndex } from "./Parser";
 import { evaluateBoard } from "./Evaluater";
 
@@ -9,7 +9,7 @@ export type moveType = {
   newState: gameState;
   value: number;
   isCheckMove: boolean;
-  isKingOnTheHillMove: boolean
+  isKingOfTheHillMove: boolean;
 };
 
 /**
@@ -333,7 +333,7 @@ export class Moves {
         return this.createMove({
           ...options,
           isHit: true,
-          isKingOnTheHillMove: isKingOnTheHill(
+          isKingOfTheHillMove: isKingOnTheHill(
             this.state.board[row][col],
             newRow,
             newCol
@@ -419,7 +419,7 @@ export class Moves {
   createMove(
     options: moveOptions & {
       isHit?: boolean;
-      isKingOnTheHillMove?:boolean,
+      isKingOfTheHillMove?: boolean;
     }
   ) {
     const [row, col] = options.moveFrom;
@@ -433,14 +433,13 @@ export class Moves {
         (options.isHit ? "x" : "-") +
         makeField(toRow, toCol),
       newState: updatedState,
-      value: evaluateBoard(updatedState.board, isW),
+      value: evaluateBoard(updatedState, isW),
       isCheckMove: isCheck(updatedState, isW) ? true : false,
-      isKingOnTheHillMove: !!options.isKingOnTheHillMove
+      isKingOfTheHillMove: !!options.isKingOfTheHillMove,
     };
     return move;
   }
 
-  //   TODO: fix CastleRight update
   updateState(options: moveOptions) {
     const fig = this.state.board[options.moveFrom[0]][options.moveFrom[1]];
     const isW = isWhite(fig);
@@ -494,157 +493,6 @@ export class Moves {
     };
     return newState;
   }
-}
-
-export function isCheck(newState: gameState, isWhiteKing: boolean) {
-  const kingsPos = searchFirst(newState, isWhiteKing ? "K" : "k");
-  if (kingsPos === undefined || kingsPos.length !== 2) {
-    console.log("No king found!!");
-    return;
-  }
-  return (
-    checkDangerLikeL(newState, kingsPos[0], kingsPos[1]) ||
-    checkDangerAllDir(newState, kingsPos[0], kingsPos[1])
-  );
-}
-
-function checkDangerLikeL(state: gameState, row: number, col: number) {
-  const board = state.board;
-  const fig = board[row][col];
-  const nextPos = [
-    [row - 2, col - 1],
-    [row - 2, col + 1],
-    [row + 2, col - 1],
-    [row + 2, col + 1],
-    [row - 1, col + 2],
-    [row + 1, col + 2],
-    [row - 1, col - 2],
-    [row + 1, col - 2],
-  ];
-  for (const pos of nextPos) {
-    const newRow = pos[0];
-    const newCol = pos[1];
-    if (
-      isIndexOnBoard(newRow, newCol) &&
-      isBeatable(fig, board[newRow][newCol]) &&
-      fig.toUpperCase() === "N"
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function checkDangerAllDir(state: gameState, row: number, col: number) {
-  const allDir = [
-    {
-      xDir: 1,
-      yDir: 1,
-      dangerFrom: "QB",
-      pawnDanger: true,
-    },
-    {
-      xDir: 1,
-      yDir: -1,
-      dangerFrom: "QB",
-      pawnDanger: true,
-    },
-    {
-      xDir: -1,
-      yDir: 1,
-      dangerFrom: "QB",
-      pawnDanger: true,
-    },
-    {
-      xDir: -1,
-      yDir: -1,
-      dangerFrom: "QB",
-      pawnDanger: true,
-    },
-    {
-      xDir: 1,
-      yDir: 0,
-      dangerFrom: "QR",
-      pawnDanger: false,
-    },
-    {
-      xDir: 0,
-      yDir: 1,
-      dangerFrom: "QR",
-      pawnDanger: false,
-    },
-    {
-      xDir: -1,
-      yDir: 0,
-      dangerFrom: "QR",
-      pawnDanger: false,
-    },
-    {
-      xDir: 0,
-      yDir: -1,
-      dangerFrom: "QR",
-      pawnDanger: false,
-    },
-  ];
-  const board = state.board;
-  const fig = board[row][col];
-  for (const dir of allDir) {
-    let x = 1;
-    let y = 1;
-    while (
-      isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
-      isEmpty(board[row + dir.yDir * y][col + dir.xDir * x])
-    ) {
-      x += 1;
-      y += 1;
-    }
-    if (
-      isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
-      isBeatable(fig, board[row + dir.yDir * y][col + dir.xDir * x]) &&
-      (dir.dangerFrom.includes(
-        board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()
-      ) ||
-        (x === 1 && y === 1 && dir.pawnDanger))
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function searchFirst(state: gameState, searchFig: figType) {
-  const fig = searchFig;
-  const board = state.board;
-  let figsPos = [];
-  for (const row in board) {
-    for (const col in board[row]) {
-      if (board[row][col] === fig) {
-        figsPos.push(parseInt(row), parseInt(col));
-        return figsPos;
-      }
-    }
-  }
-}
-
-export function isMate(state: gameState, moves: moveType[]) {
-  const isMateState = isCheck(state, state.isWhiteTurn) && moves.length === 0;
-  if (isMateState)
-    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in checkmate!`);
-  return isMateState;
-}
-
-export function isStaleMate(state: gameState, moves: moveType[]) {
-  const isStaleMateState =
-    !isCheck(state, state.isWhiteTurn) && moves.length === 0;
-  if (isStaleMateState)
-    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in stalemate!`);
-  return isStaleMateState;
-}
-
-export function isHalfmoveRemi(state: gameState) {
-  const isRemi = state.halfmoveClock >= 100;
-  if (isRemi) console.log(`Remi because of 50-moves-rule!`);
-  return isRemi;
 }
 
 export function isKingOnTheHill(fig: figType, row: number, col: number) {

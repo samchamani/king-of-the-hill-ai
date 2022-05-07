@@ -1,5 +1,5 @@
-import { figType } from "../View/Figure";
-import { isWhite } from "./Utils";
+import { gameState } from "../App";
+import { isWhite, isCheck } from "./Utils";
 
 /**
  * Values from https://www.chess.com/terms/chess-piece-value
@@ -10,7 +10,8 @@ import { isWhite } from "./Utils";
  */
 
 // TODO: Punkte für Matt setzen
-export const evaluateBoard = (board: figType[][], playsWhite: boolean) => {
+export const evaluateBoard = (state: gameState, playsWhite: boolean) => {
+  const board = state.board;
   let sum = 0;
   for (const row of board) {
     for (const cell of row) {
@@ -56,5 +57,6 @@ export const evaluateBoard = (board: figType[][], playsWhite: boolean) => {
       }
     }
   }
+  // isCheck(state, playsWhite)
   return sum;
 };

@@ -3,12 +3,23 @@ import * as React from "react";
 import { Board } from "./View/Board";
 import { figType } from "./View/Figure";
 import { useState } from "react";
-import { parseFEN } from "./Model/Parser";
-import { Moves, isMate, isStaleMate, isHalfmoveRemi } from "./Model/Moves";
+import { parseFEN, toStateHistoryFEN } from "./Model/Parser";
+import { evaluateBoard } from "./Model/Evaluater";
+import { Moves } from "./Model/Moves";
+import {
+  has3SameStr,
+  isMate,
+  isStaleMate,
+  isHalfmoveRemis,
+  isGameDone,
+} from "./Model/Utils";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
-const PlaceHolderIncomingFEN = "8/8/8/8/5QBk/3K4/8/8 b - - 0 1";
+const PlaceHolderIncomingFEN =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const stateHistory: string[] = [];
+
 export const assignedColor: string = "w";
 
 export type gameState = {
@@ -60,15 +71,16 @@ function App() {
     fullmoveCount: parseInt(splittedFEN[5]),
   });
 
+  // console.log("Current score: ", evaluateBoard(state, assignedColor === "w")); //TODO: Remove
   const moves = new Moves(state).getMoves();
-  if (
-    !(
-      isMate(state, moves) ||
-      isStaleMate(state, moves) ||
-      isHalfmoveRemi(state)
-    )
-  )
-    console.log("Moves: ", moves);
+
+  if (!isGameDone(state, moves, stateHistory)) console.log("Moves: ", moves);
+
+  function setNewState(state: gameState) {
+    const newState = toStateHistoryFEN(state);
+    setState(state);
+    stateHistory.push(newState);
+  }
 
   return (
     <>

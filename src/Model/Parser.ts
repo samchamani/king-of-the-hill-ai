@@ -1,7 +1,5 @@
 import { figType } from "../View/Figure";
-import { evaluateBoard } from "./Evaluater";
-import { assignedColor, gameState } from "../App";
-import { stringify } from "querystring";
+import { gameState } from "../App";
 
 const colNames = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const rowNames = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -19,9 +17,6 @@ export const parseFEN = (fen: string): figType[][] => {
     });
     board.push(rowContent);
   }
-
-  console.log("Current score: ", evaluateBoard(board, assignedColor === "w")); //TODO: Remove
-
   return board;
 };
 
@@ -39,6 +34,21 @@ export const toFEN = (state: gameState) => {
   });
   const player = state.isWhiteTurn ? "w" : "b";
   return `${boardString} ${player} ${state.castleRight} ${state.enPassant} ${state.halfmoveClock} ${state.fullmoveCount}`;
+};
+
+export const toStateHistoryFEN = (state: gameState) => {
+  let resRaw = "";
+  for (const row in state.board) {
+    state.board[row].forEach((cell) => {
+      resRaw += cell === "" ? "1" : cell;
+    });
+    if (row !== "7") resRaw += "/";
+  }
+  const boardString = resRaw.replace(/11+/g, (match) => {
+    return String(match.match(/1/g)!.length);
+  });
+  const player = state.isWhiteTurn ? "w" : "b";
+  return `${boardString} ${player} ${state.castleRight} ${state.enPassant}`;
 };
 
 export function makeField(row: number, col: number) {
