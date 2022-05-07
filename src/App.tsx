@@ -4,12 +4,11 @@ import { Board } from "./View/Board";
 import { figType } from "./View/Figure";
 import { useState } from "react";
 import { parseFEN } from "./Model/Parser";
-import { Moves } from "./Model/Moves";
+import { Moves, isMate, isStaleMate, isHalfmoveRemi } from "./Model/Moves";
 // fuer Server Kommunikation
 // let ws = new WebSocket("ws://localhost:8025/websockets/game");
 
-const PlaceHolderIncomingFEN =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
+const PlaceHolderIncomingFEN = "8/8/8/8/5QBk/3K4/8/8 b - - 0 1";
 export const assignedColor: string = "w";
 
 export type gameState = {
@@ -62,13 +61,20 @@ function App() {
   });
 
   const moves = new Moves(state).getMoves();
-  console.log("Moves: ", moves);
+  if (
+    !(
+      isMate(state, moves) ||
+      isStaleMate(state, moves) ||
+      isHalfmoveRemi(state)
+    )
+  )
+    console.log("Moves: ", moves);
 
   return (
     <>
-      <div className="login" onClick={login}>
+      {/* <div className="login" onClick={login}>
         {"Login"}
-      </div>
+      </div> */}
       <Board board={state.board} />
     </>
   );

@@ -8,7 +8,7 @@ export type moveType = {
   move: string;
   newState: gameState;
   value: number;
-  isMateMove: boolean;
+  isCheckMove: boolean;
 };
 
 /**
@@ -16,7 +16,6 @@ export type moveType = {
  */
 export class Moves {
   state: gameState;
-
   constructor(state: gameState) {
     this.state = state;
   }
@@ -32,7 +31,7 @@ export class Moves {
         }
       }
     }
-    return moves.filter((o) => !o.isMateMove);
+    return moves.filter((o) => !o.isCheckMove);
   }
 
   getMovesFor([row, col]: [string, string]) {
@@ -288,7 +287,7 @@ export class Moves {
       });
       newMove ? moves.push(newMove) : null;
     }
-    const isNotMate = !isMate(this.state, isW as boolean);
+    const isNotMate = !isCheck(this.state, isW as boolean);
     if (
       canShortCastle &&
       board[row][5] === "" &&
@@ -428,7 +427,7 @@ export class Moves {
         makeField(toRow, toCol),
       newState: updatedState,
       value: evaluateBoard(updatedState.board, isW),
-      isMateMove: isMate(updatedState, isW) ? true : false,
+      isCheckMove: isCheck(updatedState, isW) ? true : false,
     };
     return move;
   }
@@ -454,7 +453,7 @@ export class Moves {
         ? (newBoard[options.moveTo[0]][3] = "R")
         : (newBoard[options.moveTo[0]][3] = "r");
       newBoard[options.moveTo[0]][0] = "";
-      usedCastle = isW ? "KQ" : "kq";
+      usedCastle = isW ? "QK" : "qk";
     }
     if (options.didShortCastle) {
       isW
@@ -464,22 +463,19 @@ export class Moves {
       usedCastle = isW ? "KQ" : "kq";
     }
     if (options.lostLongCastle) usedCastle = isW ? "Q" : "q";
-    if (options.lostShortCastle) usedCastle = usedCastle + isW ? "K" : "k";
+    if (options.lostShortCastle) usedCastle += isW ? "K" : "k";
     let newCastleRight = this.state.castleRight;
     if (usedCastle !== "") {
-      newCastleRight = this.state.castleRight.replace(
-        usedCastle.length > 1
-          ? new RegExp([...usedCastle].join("|"))
-          : usedCastle,
-        ""
-      );
+      [...usedCastle].forEach((l) => {
+        newCastleRight = newCastleRight.replace(l, "");
+      });
     }
     const newState: gameState = {
       board: newBoard,
       isWhiteTurn: !this.state.isWhiteTurn,
       castleRight: newCastleRight === "" ? "-" : newCastleRight,
       enPassant: options.didPWalk2
-        ? newBoard[options.moveTo[0] + 1 * colorFactor][options.moveTo[1]]
+        ? makeField(options.moveTo[0] - 1 * colorFactor, options.moveTo[1])
         : "-",
       halfmoveClock: options.didPawnMoveOrAnyDie
         ? 0
@@ -492,7 +488,7 @@ export class Moves {
   }
 }
 
-export function isMate(newState: gameState, isWhiteKing: boolean) {
+export function isCheck(newState: gameState, isWhiteKing: boolean) {
   const kingsPos = searchFirst(newState, isWhiteKing ? "K" : "k");
   if (kingsPos === undefined || kingsPos.length !== 2) {
     console.log("No king found!!");
@@ -620,6 +616,27 @@ function searchFirst(state: gameState, searchFig: figType) {
       }
     }
   }
+}
+
+export function isMate(state: gameState, moves: moveType[]) {
+  const isMateState = isCheck(state, state.isWhiteTurn) && moves.length === 0;
+  if (isMateState)
+    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in checkmate!`);
+  return isMateState;
+}
+
+export function isStaleMate(state: gameState, moves: moveType[]) {
+  const isStaleMateState =
+    !isCheck(state, state.isWhiteTurn) && moves.length === 0;
+  if (isStaleMateState)
+    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in stalemate!`);
+  return isStaleMateState;
+}
+
+export function isHalfmoveRemi(state: gameState) {
+  const isRemi = state.halfmoveClock >= 100;
+  if (isRemi) console.log(`Remi because of 50-moves-rule!`);
+  return isRemi;
 }
 
 export interface moveOptions {

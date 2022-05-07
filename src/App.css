@@ -1,22 +1,27 @@
-html, body, #root {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    background: darkslategray;
-    display: inline-block;
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  background: darkslategray;
+  display: inline-block;
+}
+
+#root {
+  display: flex;
 }
 
 .login {
-    background: burlywood;
-    height: 40px;
-    width: fit-content;
-    margin: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0px 27px;
-    border-radius: 20px;
-    margin: 30px;
-    cursor: pointer;
-  
+  background: burlywood;
+  height: 40px;
+  width: fit-content;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 27px;
+  border-radius: 20px;
+  margin: 30px;
+  cursor: pointer;
 }
