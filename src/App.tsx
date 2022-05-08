@@ -8,8 +8,7 @@ import { Moves } from "./Model/Moves";
 import { isGameDone } from "./Model/Utils";
 import { alphaBeta } from "./Model/Evaluater";
 
-const PlaceHolderIncomingFEN =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const PlaceHolderIncomingFEN = "8/p3k3/5N2/4P3/8/B7/8/K7 b - - 0 1";
 const stateHistory: string[] = [];
 
 export type gameState = {
@@ -54,23 +53,23 @@ function App() {
 
   function setNewState(state: gameState) {
     const moves = new Moves(state).getMoves();
-    let depth = 2;
-    if (moves.length < 20) depth = 3;
-    if (moves.length < 15) depth = 4;
-    if (moves.length < 10) depth = 6;
+    let depth = 3;
+    // if (moves.length < 20) depth = 3;
+    // if (moves.length < 15) depth = 4;
+    console.log(!isGameDone(state, moves, stateHistory));
     if (!isGameDone(state, moves, stateHistory)) {
-      // console.log("Moves: ", moves);
-      console.time("alphabeta time");
-      moves.forEach((move) => {
-        move.value = alphaBeta({
-          state: move.newState,
-          depth: depth,
-          alpha: -10000,
-          beta: 10000,
-          isMax: false,
-          stateHistory: stateHistory,
-        });
-      });
+      console.log("Moves: ", moves);
+      // console.time("alphabeta time");
+      // moves.forEach((move) => {
+      //   move.value = alphaBeta({
+      //     state: move.newState,
+      //     depth: depth,
+      //     alpha: -10000,
+      //     beta: 10000,
+      //     isMax: false,
+      //     stateHistory: stateHistory,
+      //   });
+      // });
       // console.log(
       //   "AlphaBeta analysis: ",
       //   moves
@@ -82,18 +81,18 @@ function App() {
       //     })
       //     .map((o) => `${o.move}: ${o.value} Points`)
       // );
-      const highestPoints = moves
-        .map((o) => o.value)
-        .reduce((prev, curr) => {
-          if (curr === undefined) return prev;
-          if (prev === undefined) return curr;
-          return prev > curr ? prev : curr;
-        });
-      const bestMoves = moves.filter((o) => o.value === highestPoints);
+      // const highestPoints = moves
+      //   .map((o) => o.value)
+      //   .reduce((prev, curr) => {
+      //     if (curr === undefined) return prev;
+      //     if (prev === undefined) return curr;
+      //     return prev > curr ? prev : curr;
+      //   });
+      const bestMoves = moves; //.filter((o) => o.value === highestPoints);
       const pickedMove =
         bestMoves[Math.floor(Math.random() * bestMoves.length)];
       console.log("Picked move: " + pickedMove.move + " " + pickedMove.value);
-      console.timeEnd("alphabeta time");
+      // console.timeEnd("alphabeta time");
       const newState = toStateHistoryFEN(pickedMove.newState);
       setState(pickedMove.newState);
       stateHistory.push(newState);
