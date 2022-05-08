@@ -7,9 +7,10 @@ import { evaluateBoard } from "./Evaluater";
 export type moveType = {
   move: string;
   newState: gameState;
-  value: number;
+  value?: number;
   isCheckMove: boolean;
   isKingOfTheHillMove: boolean;
+  hitMoveBy: string;
 };
 
 /**
@@ -17,8 +18,13 @@ export type moveType = {
  */
 export class Moves {
   state: gameState;
+  value: number | undefined;
   constructor(state: gameState) {
     this.state = state;
+  }
+
+  setValue(val: number) {
+    this.value = val;
   }
 
   getMoves() {
@@ -426,16 +432,18 @@ export class Moves {
     const [toRow, toCol] = options.moveTo;
     const updatedState = this.updateState(options);
     const isW = isWhite(this.state.board[row][col]) as boolean;
+    const fig = this.state.board[row][col];
     const move: moveType = {
       move:
-        this.state.board[row][col] +
+        fig +
         makeField(row, col) +
         (options.isHit ? "x" : "-") +
         makeField(toRow, toCol),
       newState: updatedState,
-      value: evaluateBoard(updatedState, isW),
+      // value: evaluateBoard(updatedState, isW),
       isCheckMove: isCheck(updatedState, isW) ? true : false,
       isKingOfTheHillMove: !!options.isKingOfTheHillMove,
+      hitMoveBy: options.isHit ? fig.toUpperCase() : "",
     };
     return move;
   }

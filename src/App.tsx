@@ -4,23 +4,13 @@ import { Board } from "./View/Board";
 import { figType } from "./View/Figure";
 import { useState } from "react";
 import { parseFEN, toStateHistoryFEN } from "./Model/Parser";
-import { evaluateBoard } from "./Model/Evaluater";
 import { Moves } from "./Model/Moves";
-import {
-  has3SameStr,
-  isMate,
-  isStaleMate,
-  isHalfmoveRemis,
-  isGameDone,
-} from "./Model/Utils";
-// fuer Server Kommunikation
-// let ws = new WebSocket("ws://localhost:8025/websockets/game");
+import { isGameDone } from "./Model/Utils";
+import { alphaBeta } from "./Model/Evaluater";
 
 const PlaceHolderIncomingFEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const stateHistory: string[] = [];
-
-export const assignedColor: string = "w";
 
 export type gameState = {
   board: figType[][];
@@ -52,15 +42,6 @@ export type gameState = {
 };
 
 function App() {
-  // fuer Server Kommunikation
-  // console.log(ws);
-  // ws.onmessage = (e) => {
-  //   let message = e.data;
-  //   console.log(message);
-  //   let parsedMessage = JSON.parse(message);
-  //   console.log("Message from server: \n" + message);
-  // };
-
   const splittedFEN = PlaceHolderIncomingFEN.split(/\s+/);
   const [state, setState] = useState<gameState>({
     board: parseFEN(splittedFEN[0]),
@@ -71,35 +52,70 @@ function App() {
     fullmoveCount: parseInt(splittedFEN[5]),
   });
 
-  // console.log("Current score: ", evaluateBoard(state, assignedColor === "w")); //TODO: Remove
-  const moves = new Moves(state).getMoves();
-
-  if (!isGameDone(state, moves, stateHistory)) console.log("Moves: ", moves);
-
   function setNewState(state: gameState) {
-    const newState = toStateHistoryFEN(state);
-    setState(state);
-    stateHistory.push(newState);
+    const moves = new Moves(state).getMoves();
+    let depth = 2;
+    if (moves.length < 20) depth = 3;
+    if (moves.length < 15) depth = 4;
+    if (moves.length < 10) depth = 6;
+    if (!isGameDone(state, moves, stateHistory)) {
+      // console.log("Moves: ", moves);
+      console.time("alphabeta time");
+      moves.forEach((move) => {
+        move.value = alphaBeta({
+          state: move.newState,
+          depth: depth,
+          alpha: -10000,
+          beta: 10000,
+          isMax: false,
+          stateHistory: stateHistory,
+        });
+      });
+      // console.log(
+      //   "AlphaBeta analysis: ",
+      //   moves
+      //     .sort((a, b) => {
+      //       if (!!a.value && !!b.value) return a.value >= b.value ? -1 : 1;
+      //       if (!!a.value && !b.value) return -1;
+      //       if (!a.value && !!b.value) return 1;
+      //       return 0;
+      //     })
+      //     .map((o) => `${o.move}: ${o.value} Points`)
+      // );
+      const highestPoints = moves
+        .map((o) => o.value)
+        .reduce((prev, curr) => {
+          if (curr === undefined) return prev;
+          if (prev === undefined) return curr;
+          return prev > curr ? prev : curr;
+        });
+      const bestMoves = moves.filter((o) => o.value === highestPoints);
+      const pickedMove =
+        bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      console.log("Picked move: " + pickedMove.move + " " + pickedMove.value);
+      console.timeEnd("alphabeta time");
+      const newState = toStateHistoryFEN(pickedMove.newState);
+      setState(pickedMove.newState);
+      stateHistory.push(newState);
+      // console.log("History: ", stateHistory);
+    } else {
+      isGameDone(state, moves, stateHistory);
+    }
   }
 
   return (
     <>
-      {/* <div className="login" onClick={login}>
-        {"Login"}
-      </div> */}
+      <div
+        className="login"
+        onClick={() => {
+          setNewState(state);
+        }}
+      >
+        {"nextMove"}
+      </div>
       <Board board={state.board} />
     </>
   );
 }
-
-const login = () => {
-  // fuer Server Kommunikation
-  // ws.send(
-  //   JSON.stringify({
-  //     type: 0,
-  //     username: "Gruppe AI",
-  //   })
-  // );
-};
 
 export default App;

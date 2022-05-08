@@ -25,3 +25,11 @@ body,
   margin: 30px;
   cursor: pointer;
 }
+
+.login:hover {
+  background-color: tan;
+}
+
+.login:active {
+  background-color: darksalmon;
+}

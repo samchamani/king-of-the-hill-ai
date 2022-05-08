@@ -28,7 +28,10 @@ export const isBeatable = (fig1: figType, fig2: figType) => {
   return isWhite(fig1) !== isWhite(fig2);
 };
 
-export const isKingOfTheHill = (state: gameState) => {
+export const isKingOfTheHill = (
+  state: gameState,
+  suppressLog: boolean = false
+) => {
   const hills = [
     [3, 3],
     [3, 4],
@@ -38,7 +41,7 @@ export const isKingOfTheHill = (state: gameState) => {
 
   for (const hill of hills) {
     if (state.board[hill[0]][hill[1]].toUpperCase() === "K") {
-      console.log("King of the hill!");
+      // !suppressLog ? console.log("King of the hill!") : null; //TODO: buggy function call
       return true;
     }
   }
@@ -54,10 +57,14 @@ export function has3SameStr(strs: string[]) {
   return false;
 }
 
-export function isCheck(newState: gameState, isWhiteKing: boolean) {
+export function isCheck(
+  newState: gameState,
+  isWhiteKing: boolean,
+  suppressLog: boolean = false
+) {
   const kingsPos = searchFirst(newState, isWhiteKing ? "K" : "k");
   if (kingsPos === undefined || kingsPos.length !== 2) {
-    console.log("No king found!!");
+    // !suppressLog ? console.log("No king found!!") : null; //TODO: buggy function call
     return;
   }
   return (
@@ -184,9 +191,13 @@ function searchFirst(state: gameState, searchFig: figType) {
   }
 }
 
-export function isMate(state: gameState, moves: moveType[]) {
+export function isMate(
+  state: gameState,
+  moves: moveType[],
+  suppressLog: boolean = true
+) {
   const isMateState = isCheck(state, state.isWhiteTurn) && moves.length === 0;
-  if (isMateState)
+  if (isMateState && !suppressLog)
     console.log(`${state.isWhiteTurn ? "White" : "Black"} is in checkmate!`);
   return isMateState;
 }
@@ -217,4 +228,18 @@ export function isGameDone(
     has3SameStr(stateHistory) ||
     isKingOfTheHill(state)
   );
+}
+
+export function sortAsWeakHits(moves: moveType[]) {
+  return moves.sort((a, b) => {
+    if (a.isKingOfTheHillMove && !b.isKingOfTheHillMove) return -1;
+    if (a.hitMoveBy === "P" && b.hitMoveBy !== "P") return -1;
+    if (a.hitMoveBy === "N" && b.hitMoveBy !== "N") return -1;
+    if (a.hitMoveBy === "B" && b.hitMoveBy !== "B") return -1;
+    if (a.hitMoveBy === "R" && b.hitMoveBy !== "R") return -1;
+    if (a.hitMoveBy === "Q" && b.hitMoveBy !== "Q") return -1;
+    if (a.hitMoveBy === "K" && b.hitMoveBy !== "K") return -1;
+    if (a.hitMoveBy === "" && b.hitMoveBy !== "") return 1;
+    return 0;
+  });
 }
