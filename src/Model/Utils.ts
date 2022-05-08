@@ -172,7 +172,11 @@ function checkDangerAllDir(state: gameState, row: number, col: number) {
         (x === 1 &&
           y === 1 &&
           dir.pawnDanger &&
-          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "P"))
+          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() ===
+            "P") ||
+        (x === 1 &&
+          y === 1 &&
+          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "K"))
     ) {
       return true;
     }
