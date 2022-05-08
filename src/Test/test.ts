@@ -114,7 +114,7 @@ const data = [
   },
   {
     position: "Queen's gambit (Gruppe C)",
-    fen: "rnbkqbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBKQBNR b - 0 2",
+    fen: "rnbkqbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBKQBNR b KQkq - 0 2",
   },
   {
     position: "Stellung 1 (Gruppe Q)",
@@ -130,11 +130,12 @@ const data = [
   },
   {
     position: "Stellung 2: Endspiel mit Turm (Gruppe S)",
-    fen: "8/8/8/8/2R5/6pk/1r6/6K1 w – 0 51",
+    fen: "8/8/8/8/2R5/6pk/1r6/6K1 w - – 0 51",
   },
 ];
 
 export const runTest = () => {
+  console.log("============================================");
   data.forEach((obj) => {
     console.log(obj.position);
     const splittedFEN = obj.fen.split(/\s+/);
@@ -146,16 +147,12 @@ export const runTest = () => {
       halfmoveClock: parseInt(splittedFEN[4]),
       fullmoveCount: parseInt(splittedFEN[5]),
     };
-    const libMoves = new Chess(obj.fen).moves()
-    const ownMoves =new Moves(state).getMoves().map(val=>{
-        return val.move
+    const libMoves = new Chess(obj.fen).moves();
+    const ownMoves = new Moves(state).getMoves().map((val) => {
+      return val.move;
     });
     console.log(libMoves);
     console.log(ownMoves);
-    
-    const result = libMoves.every(el =>{
-        ownMoves.includes(el)
-    })
-    console.log(result);
   });
+  console.log("============================================");
 };
