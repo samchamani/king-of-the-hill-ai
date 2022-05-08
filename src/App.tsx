@@ -7,6 +7,7 @@ import { parseFEN, toStateHistoryFEN } from "./Model/Parser";
 import { Moves } from "./Model/Moves";
 import { isGameDone } from "./Model/Utils";
 import { alphaBeta } from "./Model/Evaluater";
+import { runTest } from "./Test/test";
 
 const PlaceHolderIncomingFEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -42,6 +43,7 @@ export type gameState = {
 };
 
 function App() {
+  runTest();
   const splittedFEN = PlaceHolderIncomingFEN.split(/\s+/);
   const [state, setState] = useState<gameState>({
     board: parseFEN(splittedFEN[0]),
