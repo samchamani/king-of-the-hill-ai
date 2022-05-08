@@ -9,6 +9,9 @@ import { isGameDone } from "./Model/Utils";
 import { alphaBeta } from "./Model/Evaluater";
 import { runTest } from "./Test/test";
 
+//"8/p3k3/5N2/4P3/8/B7/8/K7 b - - 0 1" end
+//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" start
+// "r1br2k1/pppp1pp1/7p/2b1p3/2Pn4/4QN2/PP2PPBP/RN3RK1 w - - 0 1" mid
 const PlaceHolderIncomingFEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const stateHistory: string[] = [];
@@ -55,14 +58,14 @@ function App() {
   });
 
   function setNewState(state: gameState) {
+    // console.time("Random move");
+    console.time("Alphabeta time");
     const moves = new Moves(state).getMoves();
     let depth = 2;
-    if (moves.length < 20) depth = 3;
-    if (moves.length < 15) depth = 4;
-    if (moves.length < 10) depth = 6;
+    // if (moves.length < 20) depth = 3;
+    // if (moves.length < 15) depth = 4;
     if (!isGameDone(state, moves, stateHistory)) {
       // console.log("Moves: ", moves);
-      console.time("alphabeta time");
       moves.forEach((move) => {
         move.value = alphaBeta({
           state: move.newState,
@@ -73,17 +76,17 @@ function App() {
           stateHistory: stateHistory,
         });
       });
-      // console.log(
-      //   "AlphaBeta analysis: ",
-      //   moves
-      //     .sort((a, b) => {
-      //       if (!!a.value && !!b.value) return a.value >= b.value ? -1 : 1;
-      //       if (!!a.value && !b.value) return -1;
-      //       if (!a.value && !!b.value) return 1;
-      //       return 0;
-      //     })
-      //     .map((o) => `${o.move}: ${o.value} Points`)
-      // );
+      console.log(
+        "AlphaBeta move evaluation: ",
+        moves
+          .sort((a, b) => {
+            if (!!a.value && !!b.value) return a.value >= b.value ? -1 : 1;
+            if (!!a.value && !b.value) return -1;
+            if (!a.value && !!b.value) return 1;
+            return 0;
+          })
+          .map((o) => `${o.move}: ${o.value} Points`)
+      );
       const highestPoints = moves
         .map((o) => o.value)
         .reduce((prev, curr) => {
@@ -95,7 +98,8 @@ function App() {
       const pickedMove =
         bestMoves[Math.floor(Math.random() * bestMoves.length)];
       console.log("Picked move: " + pickedMove.move + " " + pickedMove.value);
-      console.timeEnd("alphabeta time");
+      console.timeEnd("Alphabeta time");
+      // console.timeEnd("Random move");
       const newState = toStateHistoryFEN(pickedMove.newState);
       setState(pickedMove.newState);
       stateHistory.push(newState);

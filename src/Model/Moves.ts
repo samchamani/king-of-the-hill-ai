@@ -2,13 +2,12 @@ import { gameState } from "../App";
 import { figType } from "../View/Figure";
 import { isIndexOnBoard, isWhite, isEmpty, isBeatable, isCheck } from "./Utils";
 import { makeField, makeIndex } from "./Parser";
-import { evaluateBoard } from "./Evaluater";
 
 export type moveType = {
   move: string;
   newState: gameState;
   value?: number;
-  isCheckMove: boolean;
+  isCheckMove: boolean | undefined;
   isKingOfTheHillMove: boolean;
   hitMoveBy: string;
 };
@@ -284,6 +283,7 @@ export class Moves {
     const shortCastle = isW ? "K" : "k";
     const canLongCastle = this.state.castleRight.includes(longCastle);
     const canShortCastle = this.state.castleRight.includes(shortCastle);
+    const isNotCheck = !isCheck(this.state, isW as boolean);
 
     for (const pos of nextPos) {
       const newMove = this.getMovesHelper({
@@ -292,14 +292,14 @@ export class Moves {
         lostLongCastle: canLongCastle,
         lostShortCastle: canShortCastle,
       });
-      newMove ? moves.push(newMove) : null;
+      !!newMove ? moves.push(newMove) : null;
     }
-    const isNotMate = !isCheck(this.state, isW as boolean);
+
     if (
       canShortCastle &&
       board[row][5] === "" &&
       board[row][6] === "" &&
-      isNotMate
+      isNotCheck
     )
       moves.push(
         this.createMove({
@@ -314,7 +314,7 @@ export class Moves {
       board[row][1] === "" &&
       board[row][2] === "" &&
       board[row][3] === "" &&
-      isNotMate
+      isNotCheck
     )
       moves.push(
         this.createMove({
@@ -441,7 +441,7 @@ export class Moves {
         makeField(toRow, toCol),
       newState: updatedState,
       // value: evaluateBoard(updatedState, isW),
-      isCheckMove: isCheck(updatedState, isW) ? true : false,
+      isCheckMove: isCheck(updatedState, isW),
       isKingOfTheHillMove: !!options.isKingOfTheHillMove,
       hitMoveBy: options.isHit ? fig.toUpperCase() : "",
     };

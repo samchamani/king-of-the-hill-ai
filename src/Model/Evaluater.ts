@@ -59,14 +59,14 @@ export const evaluateBoard = (state: gameState, playsWhite: boolean) => {
       }
     }
   }
-  if ((isCheck(state, playsWhite === !state.isWhiteTurn), true)) sum += 10;
-  if ((isKingOfTheHill(state) && !state.isWhiteTurn === playsWhite, true))
-    sum += 100;
-  if (
-    isCheck(state, playsWhite === !state.isWhiteTurn) &&
-    isMate(state, new Moves(state).getMoves(), true)
-  )
-    sum += 1000;
+  // if ((isCheck(state, playsWhite === !state.isWhiteTurn), true)) sum += 10;
+  // if ((isKingOfTheHill(state) && !state.isWhiteTurn === playsWhite, true))
+  //   sum += 100;
+  // if (
+  //   isCheck(state, playsWhite === !state.isWhiteTurn) &&
+  //   isMate(state, new Moves(state).getMoves(), true)
+  // )
+  //   sum += 1000;
   return sum;
 };
 

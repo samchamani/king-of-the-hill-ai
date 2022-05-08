@@ -92,7 +92,7 @@ function checkDangerLikeL(state: gameState, row: number, col: number) {
     if (
       isIndexOnBoard(newRow, newCol) &&
       isBeatable(fig, board[newRow][newCol]) &&
-      fig.toUpperCase() === "N"
+      board[newRow][newCol].toUpperCase() === "N"
     ) {
       return true;
     }
@@ -169,7 +169,14 @@ function checkDangerAllDir(state: gameState, row: number, col: number) {
       (dir.dangerFrom.includes(
         board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()
       ) ||
-        (x === 1 && y === 1 && dir.pawnDanger))
+        (x === 1 &&
+          y === 1 &&
+          dir.pawnDanger &&
+          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() ===
+            "P") ||
+        (x === 1 &&
+          y === 1 &&
+          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "K"))
     ) {
       return true;
     }
