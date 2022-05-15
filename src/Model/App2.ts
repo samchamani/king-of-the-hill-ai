@@ -1,9 +1,9 @@
-import { alphaBeta, Board } from "./Board";
+import { alphaBeta, BoardModel } from "./Board";
 
 export const App = () => {
   const FEN = "";
 
-  const board = new Board(FEN);
+  const board = new BoardModel(FEN);
   for (const move of board.moves()) {
     alphaBeta({
       board: board,

@@ -1,3 +1,7 @@
+import { figType } from "../View/Figure";
+import { parseFEN } from "./Parser";
+const { BitBoard } = require("bitboards");
+
 export type tableEntry = {
   node?: string;
   upperbound?: number;
@@ -5,7 +9,7 @@ export type tableEntry = {
   age?: number;
 };
 
-export class Board {
+export class BoardModel {
   FEN: string | undefined;
 
   isWhiteTurn!: boolean;
@@ -40,18 +44,172 @@ export class Board {
 
   bitBoard: any;
 
+  chessBoard: figType[][] = [
+    ["r", "n", "b", "q", "k", "b", "n", "r"],
+    ["p", "p", "p", "p", "p", "p", "p", "p"],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", ""],
+    ["P", "P", "P", "P", "P", "P", "P", "P"],
+    ["R", "N", "B", "Q", "K", "B", "N", "R"],
+  ];
+  ONE_STRING =
+    "0000000000000000000000000000000000000000000000000000000000000001";
+  ZERO_STRING =
+    "0000000000000000000000000000000000000000000000000000000000000000";
+  ONE = new BitBoard(this.ONE_STRING);
+  WP = new BitBoard(this.ZERO_STRING);
+  WN = new BitBoard(this.ZERO_STRING);
+  WB = new BitBoard(this.ZERO_STRING);
+  WR = new BitBoard(this.ZERO_STRING);
+  WQ = new BitBoard(this.ZERO_STRING);
+  WK = new BitBoard(this.ZERO_STRING);
+  BP = new BitBoard(this.ZERO_STRING);
+  BN = new BitBoard(this.ZERO_STRING);
+  BB = new BitBoard(this.ZERO_STRING);
+  BR = new BitBoard(this.ZERO_STRING);
+  BQ = new BitBoard(this.ZERO_STRING);
+  BK = new BitBoard(this.ZERO_STRING);
+
   //transposition table
   table!: tableEntry[];
 
-  constructor(FEN: string) {
-    this.FEN = FEN;
-    this.initBoard();
+  constructor(FEN?: string) {
+    // this.FEN = FEN;
+    // this.initBoard();
+    this.convertArraysToBitboards();
+  }
+  convertArraysToBitboards() {
+    for (let i = 0; i < 64; i++) {
+      let b =
+        this.ZERO_STRING.substring(i + 1) +
+        "1" +
+        this.ZERO_STRING.substring(0, i);
+
+      let row = Math.floor(i / 8);
+      let col = i % 8;
+      switch (this.chessBoard[row][col]) {
+        case "P":
+          this.WP.xOr(new BitBoard(b), true);
+          break;
+        case "N":
+          this.WN.xOr(new BitBoard(b), true);
+          break;
+        case "B":
+          this.WB.xOr(new BitBoard(b), true);
+          break;
+        case "R":
+          this.WR.xOr(new BitBoard(b), true);
+          break;
+        case "Q":
+          this.WQ.xOr(new BitBoard(b), true);
+          break;
+        case "K":
+          this.WK.xOr(new BitBoard(b), true);
+          break;
+        case "p":
+          this.BP.xOr(new BitBoard(b), true);
+          break;
+        case "n":
+          this.BN.xOr(new BitBoard(b), true);
+          break;
+        case "b":
+          this.BB.xOr(new BitBoard(b), true);
+          break;
+        case "r":
+          this.BR.xOr(new BitBoard(b), true);
+          break;
+        case "q":
+          this.BQ.xOr(new BitBoard(b), true);
+          break;
+        case "k":
+          this.BK.xOr(new BitBoard(b), true);
+          break;
+      }
+    }
+  }
+  printArray() {
+    let newChessBoard: figType[][] = Array.from(Array(8), () => new Array(8));
+    for (let i = 0; i < 64; i++) {
+      let row = Math.floor(i / 8);
+      let col = i % 8;
+      newChessBoard[row][col] = "";
+    }
+    for (let i = 0; i < 64; i++) {
+      let row = Math.floor(i / 8);
+      let col = i % 8;
+
+      if (
+        this.WP.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      ) {
+        newChessBoard[row][col] = "P";
+      }
+      if (
+        this.WN.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "N";
+      if (
+        this.WB.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "B";
+      if (
+        this.WR.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "R";
+      if (
+        this.WQ.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "Q";
+      if (
+        this.WK.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "K";
+      if (
+        this.BP.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "p";
+      if (
+        this.BN.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "n";
+      if (
+        this.BB.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "b";
+      if (
+        this.BR.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "r";
+      if (
+        this.BQ.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "q";
+      if (
+        this.BK.shiftRight(i, false).and(this.ONE, false).toString() ===
+        this.ONE.toString()
+      )
+        newChessBoard[row][col] = "k";
+    }
+    console.log(newChessBoard);
   }
 
   initBoard() {
     if (this.FEN) {
       //todo parseFEN to bitboard
       const splittedFEN = this.FEN.split(/\s+/);
+      this.chessBoard = parseFEN(splittedFEN[0]);
       this.isWhiteTurn = splittedFEN[1] === "w";
       this.castleRight = splittedFEN[2];
       this.enPassant = splittedFEN[3];
@@ -72,7 +230,7 @@ export class Board {
   pickBestMove() {}
 
   getNewBoard(move: Move) {
-    return new Board("");
+    return new BoardModel("");
   }
 
   updateBoard(move: Move) {}
@@ -90,7 +248,7 @@ export type Move = () => {
   isHit?: boolean;
 };
 
-const evaluateBoard = (board: Board) => {
+const evaluateBoard = (board: BoardModel) => {
   board;
   return 0;
 };
@@ -156,7 +314,7 @@ export const alphaBeta = (ab: alphaBetaType): number => {
 };
 
 type alphaBetaType = {
-  board: Board;
+  board: BoardModel;
   move: Move;
   depth: number;
   alpha: number;
