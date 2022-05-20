@@ -1,19 +1,6 @@
 import * as React from "react";
 
-export type figType =
-  | "K"
-  | "k"
-  | "Q"
-  | "q"
-  | "B"
-  | "b"
-  | "N"
-  | "n"
-  | "R"
-  | "r"
-  | "P"
-  | "p"
-  | "";
+export type figType = "K" | "k" | "Q" | "q" | "B" | "b" | "N" | "n" | "R" | "r" | "P" | "p" | "";
 
 export interface FigureProps {
   fig: figType;
@@ -35,13 +22,7 @@ export const Figure = (props: FigureProps) => {
     left: (props.col - 1) * 50,
   };
 
-  // console.log("figType,col,row:", props.fig, props.col, props.row);
-  return (
-    <div
-      className={`chess-figure ${props.fig.toLowerCase() + isWhite(props.fig)}`}
-      style={posStyles}
-    />
-  );
+  return <div className={`chess-figure ${props.fig.toLowerCase() + isWhite(props.fig)}`} style={posStyles} />;
 };
 
 function isWhite(str: string): string {

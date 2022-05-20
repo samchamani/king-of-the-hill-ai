@@ -1,6 +1,7 @@
-import { gameState } from "../App";
+import { gameState } from "./State";
 import { figType } from "../View/Figure";
 import { moveType } from "./Moves";
+import { State } from "./State";
 
 export const isWhite = (str: string | figType) => {
   if (isEmpty(str as figType)) {
@@ -28,10 +29,7 @@ export const isBeatable = (fig1: figType, fig2: figType) => {
   return isWhite(fig1) !== isWhite(fig2);
 };
 
-export const isKingOfTheHill = (
-  state: gameState,
-  suppressLog: boolean = false
-) => {
+export const isKingOfTheHill = (state: gameState, suppressLog: boolean = false) => {
   const hills = [
     [3, 3],
     [3, 4],
@@ -48,29 +46,38 @@ export const isKingOfTheHill = (
   return false;
 };
 
+export const isColorKingOfTheHill = (state: gameState, isWhite: boolean = false) => {
+  const hills = [
+    [3, 3],
+    [3, 4],
+    [4, 3],
+    [4, 4],
+  ];
+  const king = isWhite ? "K" : "k";
+  for (const hill of hills) {
+    if (state.board[hill[0]][hill[1]] === king) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export function has3SameStr(strs: string[]) {
   for (const str of strs) {
     const has3 = strs.filter((v) => v === str).length >= 3;
-    if (has3) console.log("Remis because of threefold repetition");
+    // if (has3) console.log("Remis because of threefold repetition");
     return has3;
   }
   return false;
 }
 
-export function isCheck(
-  newState: gameState,
-  isWhiteKing: boolean,
-  suppressLog: boolean = false
-) {
+export function isCheck(newState: gameState, isWhiteKing: boolean, suppressLog: boolean = false) {
   const kingsPos = searchFirst(newState, isWhiteKing ? "K" : "k");
   if (kingsPos === undefined || kingsPos.length !== 2) {
     // !suppressLog ? console.log("No king found!!") : null; //TODO: buggy function call
     return;
   }
-  return (
-    checkDangerLikeL(newState, kingsPos[0], kingsPos[1]) ||
-    checkDangerAllDir(newState, kingsPos[0], kingsPos[1])
-  );
+  return checkDangerLikeL(newState, kingsPos[0], kingsPos[1]) || checkDangerAllDir(newState, kingsPos[0], kingsPos[1]);
 }
 
 function checkDangerLikeL(state: gameState, row: number, col: number) {
@@ -89,11 +96,7 @@ function checkDangerLikeL(state: gameState, row: number, col: number) {
   for (const pos of nextPos) {
     const newRow = pos[0];
     const newCol = pos[1];
-    if (
-      isIndexOnBoard(newRow, newCol) &&
-      isBeatable(fig, board[newRow][newCol]) &&
-      board[newRow][newCol].toUpperCase() === "N"
-    ) {
+    if (isIndexOnBoard(newRow, newCol) && isBeatable(fig, board[newRow][newCol]) && board[newRow][newCol].toUpperCase() === "N") {
       return true;
     }
   }
@@ -156,27 +159,16 @@ function checkDangerAllDir(state: gameState, row: number, col: number) {
   for (const dir of allDir) {
     let x = 1;
     let y = 1;
-    while (
-      isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
-      isEmpty(board[row + dir.yDir * y][col + dir.xDir * x])
-    ) {
+    while (isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) && isEmpty(board[row + dir.yDir * y][col + dir.xDir * x])) {
       x += 1;
       y += 1;
     }
     if (
       isIndexOnBoard(col + dir.xDir * x, row + dir.yDir * y) &&
       isBeatable(fig, board[row + dir.yDir * y][col + dir.xDir * x]) &&
-      (dir.dangerFrom.includes(
-        board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()
-      ) ||
-        (x === 1 &&
-          y === 1 &&
-          dir.pawnDanger &&
-          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() ===
-            "P") ||
-        (x === 1 &&
-          y === 1 &&
-          board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "K"))
+      (dir.dangerFrom.includes(board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase()) ||
+        (x === 1 && y === 1 && dir.pawnDanger && board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "P") ||
+        (x === 1 && y === 1 && board[row + dir.yDir * y][col + dir.xDir * x].toUpperCase() === "K"))
     ) {
       return true;
     }
@@ -198,43 +190,34 @@ function searchFirst(state: gameState, searchFig: figType) {
   }
 }
 
-export function isMate(
-  state: gameState,
-  moves: moveType[],
-  suppressLog: boolean = true
-) {
+export function isMate(state: gameState, moves: moveType[], suppressLog: boolean = true) {
   const isMateState = isCheck(state, state.isWhiteTurn) && moves.length === 0;
-  if (isMateState && !suppressLog)
-    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in checkmate!`);
+  // if (isMateState && !suppressLog)
+  // console.log(`${state.isWhiteTurn ? "White" : "Black"} is in checkmate!`);
   return isMateState;
 }
 
 export function isStaleMate(state: gameState, moves: moveType[]) {
-  const isStaleMateState =
-    !isCheck(state, state.isWhiteTurn) && moves.length === 0;
-  if (isStaleMateState)
-    console.log(`${state.isWhiteTurn ? "White" : "Black"} is in stalemate!`);
+  const isStaleMateState = !isCheck(state, state.isWhiteTurn) && moves.length === 0;
+  // if (isStaleMateState)
+  // console.log(`${state.isWhiteTurn ? "White" : "Black"} is in stalemate!`);
   return isStaleMateState;
 }
 
 export function isHalfmoveRemis(state: gameState) {
   const isRemi = state.halfmoveClock >= 100;
-  if (isRemi) console.log(`Remis because of 50-moves-rule!`);
+  // if (isRemi) console.log(`Remis because of 50-moves-rule!`);
   return isRemi;
 }
 
-export function isGameDone(
-  state: gameState,
-  moves: moveType[],
-  stateHistory: string[]
-) {
-  return (
-    isMate(state, moves) ||
-    isStaleMate(state, moves) ||
-    isHalfmoveRemis(state) ||
+export function isGameDone(state: State, moves: moveType[], stateHistory: string[]) {
+  const doneCondition =
+    isMate(state.currState, moves) ||
+    isStaleMate(state.currState, moves) ||
+    isHalfmoveRemis(state.currState) ||
     has3SameStr(stateHistory) ||
-    isKingOfTheHill(state)
-  );
+    isKingOfTheHill(state.currState);
+  return doneCondition;
 }
 
 export function sortAsWeakHits(moves: moveType[]) {
