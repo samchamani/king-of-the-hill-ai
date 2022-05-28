@@ -11,15 +11,15 @@ const api = new API();
  * WebSocket of game server
  */
 // const ws = new WebSocket("")
-const PlaceHolderIncomingFEN = "8/6k1/8/8/8/8/1K6/8 b - - 0 1";
+const PlaceHolderIncomingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 function App() {
   const [board, setBoard] = React.useState(PlaceHolderIncomingFEN);
 
   //TODO
-  function setNextBoard() {
+  async function setNextBoard() {
     console.log(
-      api.post(
+      await api.post(
         "http://127.0.0.1:5000/moves",
         JSON.stringify({
           FEN: PlaceHolderIncomingFEN,
@@ -34,7 +34,7 @@ function App() {
       <div>
         <div
           className="button"
-          onClick={() => {
+          onClick={async () => {
             //TODO
             setNextBoard();
           }}
@@ -43,7 +43,7 @@ function App() {
         </div>
         <div
           className="button"
-          onClick={() => {
+          onClick={async () => {
             //TODO
             setNextBoard();
           }}
