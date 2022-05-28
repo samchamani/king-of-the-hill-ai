@@ -1,5 +1,5 @@
 import { figType } from "../View/Figure";
-import { gameState } from "../App";
+import { gameState } from "./State";
 
 const colNames = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const rowNames = ["8", "7", "6", "5", "4", "3", "2", "1"];

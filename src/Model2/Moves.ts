@@ -1,4 +1,4 @@
-import { gameState } from "../App";
+import { gameState } from "./State";
 import { figType } from "../View/Figure";
 import { isIndexOnBoard, isWhite, isEmpty, isBeatable, isCheck } from "./Utils";
 import { makeField, makeIndex } from "./Parser";
@@ -18,8 +18,11 @@ export type moveType = {
 export class Moves {
   state: gameState;
   value: number | undefined;
+  moves: moveType[];
+
   constructor(state: gameState) {
     this.state = state;
+    this.moves = this.getMoves();
   }
 
   setValue(val: number) {
@@ -32,8 +35,7 @@ export class Moves {
       for (const col in this.state.board[row]) {
         const fig = this.state.board[row][col];
         if (!isEmpty(fig)) {
-          if (this.state.isWhiteTurn === isWhite(fig))
-            moves = [...moves, ...this.getMovesFor([row, col])];
+          if (this.state.isWhiteTurn === isWhite(fig)) moves = [...moves, ...this.getMovesFor([row, col])];
         }
       }
     }
@@ -102,11 +104,7 @@ export class Moves {
     // 2 Step vor aus Startposition:
     const twoAhead = row + colorFactor * 2;
     const isStartPos = row + colorFactor * 2.5 === 3.5;
-    if (
-      isStartPos &&
-      isEmpty(board[twoAhead][col]) &&
-      isEmpty(board[oneAhead][col])
-    ) {
+    if (isStartPos && isEmpty(board[twoAhead][col]) && isEmpty(board[oneAhead][col])) {
       moves.push(
         this.createMove({
           moveFrom: [row, col],
@@ -126,11 +124,7 @@ export class Moves {
     const isEnPass = this.state.enPassant !== "-";
     const [enPasRow, enPasCol]: number[] = makeIndex(this.state.enPassant);
 
-    if (
-      isIndexOnBoard(diaLeftCol, diaLeftRow) &&
-      !isEmpty(board[diaLeftRow][diaLeftCol]) &&
-      isBeatable(fig, board[diaLeftRow][diaLeftCol])
-    ) {
+    if (isIndexOnBoard(diaLeftCol, diaLeftRow) && !isEmpty(board[diaLeftRow][diaLeftCol]) && isBeatable(fig, board[diaLeftRow][diaLeftCol])) {
       oneAhead === 0 || oneAhead === 7
         ? doPromotion(diaLeftRow, diaLeftCol, true)
         : moves.push(
@@ -157,11 +151,7 @@ export class Moves {
         })
       );
     }
-    if (
-      isIndexOnBoard(diaRightCol, diaRightRow) &&
-      !isEmpty(board[diaRightRow][diaRightCol]) &&
-      isBeatable(fig, board[diaRightRow][diaRightCol])
-    ) {
+    if (isIndexOnBoard(diaRightCol, diaRightRow) && !isEmpty(board[diaRightRow][diaRightCol]) && isBeatable(fig, board[diaRightRow][diaRightCol])) {
       oneAhead === 0 || oneAhead === 7
         ? doPromotion(diaRightRow, diaRightCol, true)
         : moves.push(
@@ -214,10 +204,8 @@ export class Moves {
     const shortCastle = isW ? "K" : "k";
     let lostLongCastle = false;
     let lostShortCastle = false;
-    if (col === 0 && this.state.castleRight.includes(longCastle))
-      lostLongCastle = true;
-    if (col === 7 && this.state.castleRight.includes(shortCastle))
-      lostShortCastle = true;
+    if (col === 0 && this.state.castleRight.includes(longCastle)) lostLongCastle = true;
+    if (col === 7 && this.state.castleRight.includes(shortCastle)) lostShortCastle = true;
     return [
       ...this.getAllMovesInDir({
         moveTo: [1, 0],
@@ -295,12 +283,7 @@ export class Moves {
       !!newMove ? moves.push(newMove) : null;
     }
 
-    if (
-      canShortCastle &&
-      board[row][5] === "" &&
-      board[row][6] === "" &&
-      isNotCheck
-    )
+    if (canShortCastle && board[row][5] === "" && board[row][6] === "" && isNotCheck)
       moves.push(
         this.createMove({
           moveFrom: [row, col],
@@ -309,13 +292,7 @@ export class Moves {
         })
       );
 
-    if (
-      canLongCastle &&
-      board[row][1] === "" &&
-      board[row][2] === "" &&
-      board[row][3] === "" &&
-      isNotCheck
-    )
+    if (canLongCastle && board[row][1] === "" && board[row][2] === "" && board[row][3] === "" && isNotCheck)
       moves.push(
         this.createMove({
           moveFrom: [row, col],
@@ -333,17 +310,11 @@ export class Moves {
     if (isIndexOnBoard(newRow, newCol)) {
       if (isEmpty(this.state.board[newRow][newCol])) {
         return this.createMove(options);
-      } else if (
-        isBeatable(this.state.board[row][col], this.state.board[newRow][newCol])
-      ) {
+      } else if (isBeatable(this.state.board[row][col], this.state.board[newRow][newCol])) {
         return this.createMove({
           ...options,
           isHit: true,
-          isKingOfTheHillMove: isKingOnTheHill(
-            this.state.board[row][col],
-            newRow,
-            newCol
-          ),
+          isKingOfTheHillMove: isKingOnTheHill(this.state.board[row][col], newRow, newCol),
         });
       }
     }
@@ -366,10 +337,7 @@ export class Moves {
     const [xDir, yDir] = options.moveTo;
     const board = this.state.board;
     const fig = board[row][col];
-    while (
-      isIndexOnBoard(col + xDir * x, row + yDir * y) &&
-      isEmpty(board[row + yDir * y][col + xDir * x])
-    ) {
+    while (isIndexOnBoard(col + xDir * x, row + yDir * y) && isEmpty(board[row + yDir * y][col + xDir * x])) {
       moves.push(
         this.createMove(
           Object.assign({}, options, {
@@ -381,10 +349,7 @@ export class Moves {
       x += 1;
       y += 1;
     }
-    if (
-      isIndexOnBoard(col + xDir * x, row + yDir * y) &&
-      isBeatable(fig, board[row + yDir * y][col + xDir * x])
-    ) {
+    if (isIndexOnBoard(col + xDir * x, row + yDir * y) && isBeatable(fig, board[row + yDir * y][col + xDir * x])) {
       moves.push(
         this.createMove(
           Object.assign({}, options, {
@@ -434,11 +399,7 @@ export class Moves {
     const isW = isWhite(this.state.board[row][col]) as boolean;
     const fig = this.state.board[row][col];
     const move: moveType = {
-      move:
-        fig +
-        makeField(row, col) +
-        (options.isHit ? "x" : "-") +
-        makeField(toRow, toCol),
+      move: fig + makeField(row, col) + (options.isHit ? "x" : "-") + makeField(toRow, toCol),
       newState: updatedState,
       // value: evaluateBoard(updatedState, isW),
       isCheckMove: isCheck(updatedState, isW),
@@ -456,24 +417,17 @@ export class Moves {
     let usedCastle = "";
     newBoard[options.moveFrom[0]][options.moveFrom[1]] = "";
     newBoard[options.moveTo[0]][options.moveTo[1]] = fig;
-    if (options.didEnPassKill)
-      newBoard[options.moveTo[0] - 1 * colorFactor][options.moveTo[1]] = "";
+    if (options.didEnPassKill) newBoard[options.moveTo[0] - 1 * colorFactor][options.moveTo[1]] = "";
     if (options.promotionAs) {
-      newBoard[options.moveTo[0]][options.moveTo[1]] = isW
-        ? options.promotionAs
-        : options.promotionAs.toLowerCase();
+      newBoard[options.moveTo[0]][options.moveTo[1]] = isW ? options.promotionAs : options.promotionAs.toLowerCase();
     }
     if (options.didLongCastle) {
-      isW
-        ? (newBoard[options.moveTo[0]][3] = "R")
-        : (newBoard[options.moveTo[0]][3] = "r");
+      isW ? (newBoard[options.moveTo[0]][3] = "R") : (newBoard[options.moveTo[0]][3] = "r");
       newBoard[options.moveTo[0]][0] = "";
       usedCastle = isW ? "QK" : "qk";
     }
     if (options.didShortCastle) {
-      isW
-        ? (newBoard[options.moveTo[0]][5] = "R")
-        : (newBoard[options.moveTo[0]][5] = "r");
+      isW ? (newBoard[options.moveTo[0]][5] = "R") : (newBoard[options.moveTo[0]][5] = "r");
       newBoard[options.moveTo[0]][7] = "";
       usedCastle = isW ? "KQ" : "kq";
     }
@@ -489,15 +443,9 @@ export class Moves {
       board: newBoard,
       isWhiteTurn: !this.state.isWhiteTurn,
       castleRight: newCastleRight === "" ? "-" : newCastleRight,
-      enPassant: options.didPWalk2
-        ? makeField(options.moveTo[0] - 1 * colorFactor, options.moveTo[1])
-        : "-",
-      halfmoveClock: options.didPawnMoveOrAnyDie
-        ? 0
-        : this.state.halfmoveClock + 1,
-      fullmoveCount: isW
-        ? this.state.fullmoveCount
-        : this.state.fullmoveCount + 1,
+      enPassant: options.didPWalk2 ? makeField(options.moveTo[0] - 1 * colorFactor, options.moveTo[1]) : "-",
+      halfmoveClock: options.didPawnMoveOrAnyDie ? 0 : this.state.halfmoveClock + 1,
+      fullmoveCount: isW ? this.state.fullmoveCount : this.state.fullmoveCount + 1,
     };
     return newState;
   }
