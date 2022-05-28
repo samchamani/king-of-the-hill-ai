@@ -1,13 +1,22 @@
 import "./App.css";
 import * as React from "react";
 import { Board } from "./View/Board";
-import { parseFEN, toStateHistoryFEN } from "./Model/Parser";
-import { isGameDone } from "./Model/Utils";
-import { State } from "./Model/State";
-import { runTests } from "./Model/Tests";
+import { parseFEN, toStateHistoryFEN } from "./Model2/Parser";
+import { isGameDone } from "./Model2/Utils";
+import { State } from "./Model2/State";
+import { runTests } from "./Model2/Tests";
+import { API } from "./Model/API";
 
 const PlaceHolderIncomingFEN = "8/6k1/8/8/8/8/1K6/8 b - - 0 1";
 const stateHistory: string[] = [];
+
+const currState = JSON.stringify({
+  FEN: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+});
+
+const api = new API();
+
+api.post("http://127.0.0.1:5000/moves", currState);
 
 function App() {
   // runTests();
