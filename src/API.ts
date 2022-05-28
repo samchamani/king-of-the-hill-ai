@@ -1,9 +1,3 @@
-// const express = rquire("express");
-
-// const app = express();
-
-// app.listen(80);
-
 export class API {
   get = <TResponse>(url: string) => request<TResponse>(url);
   post = <TBody extends BodyInit, TResponse>(url: string, body: TBody) => request<TResponse>(url, { method: "POST", body });

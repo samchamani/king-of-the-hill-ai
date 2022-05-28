@@ -16,9 +16,7 @@ export interface BoardProps {
 export const Board = (props: BoardProps) => {
   const rows = [];
   for (let i = 8; i >= 1; i--) {
-    rows.push(
-      <BoardRow key={`row-${i}`} rowNumber={i} isWhiteLeft={i % 2 === 0} />
-    );
+    rows.push(<BoardRow key={`row-${i}`} rowNumber={i} isWhiteLeft={i % 2 === 0} />);
   }
 
   const colLetters = [];
@@ -39,3 +37,17 @@ export const Board = (props: BoardProps) => {
     </div>
   );
 };
+
+export function parseFEN(fen: string): figType[][] {
+  const rows = fen.split("/");
+  const board: figType[][] = [];
+  for (const row of rows) {
+    let rowContent: figType[] = [];
+    const cells = [...row];
+    cells.forEach((cell) => {
+      /\d/.test(cell) ? (rowContent = [...rowContent, ...new Array(parseInt(cell)).fill("")]) : rowContent.push(cell as figType);
+    });
+    board.push(rowContent);
+  }
+  return board;
+}
