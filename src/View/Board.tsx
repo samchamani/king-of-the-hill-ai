@@ -10,7 +10,7 @@ const LETTERS = ["a", "b", "c", "d", "e", "f", "g", "h"];
  * Board representation
  */
 export interface BoardProps {
-  board: figType[][];
+  board: string;
 }
 
 export const Board = (props: BoardProps) => {
@@ -33,13 +33,14 @@ export const Board = (props: BoardProps) => {
         {rows}
         <div className="chess-board-col-letters">{colLetters}</div>
       </div>
-      <Figures board={props.board} />
+      <Figures board={parseFEN(props.board)} />
     </div>
   );
 };
 
 export function parseFEN(fen: string): figType[][] {
-  const rows = fen.split("/");
+  const boardFen = fen.split(/\s+/)[0];
+  const rows = boardFen.split("/");
   const board: figType[][] = [];
   for (const row of rows) {
     let rowContent: figType[] = [];

@@ -19,11 +19,11 @@ function App() {
   //TODO
   async function setNextBoard() {
     console.log(
-      await api.post(
-        "http://127.0.0.1:5000/moves",
-        JSON.stringify({
-          FEN: PlaceHolderIncomingFEN,
-        })
+      await api.get(
+        "http://127.0.0.1:5000/getMoves"
+        // JSON.stringify({
+        //   FEN: PlaceHolderIncomingFEN,
+        // })
       )
     );
     setBoard(board);
@@ -51,7 +51,7 @@ function App() {
           {"MiniMax"}
         </div>
       </div>
-      <Board board={parseFEN(board.split(/\s+/)[0])} />
+      <Board board={board} />
     </>
   );
 }
