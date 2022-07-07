@@ -14,6 +14,20 @@ export interface BoardProps {
 }
 
 export const Board = (props: BoardProps) => {
+  const splittedFEN = props.board.split(/\s+/);
+
+  const fenBoard = splittedFEN[0];
+  const board: figType[][] = [];
+  const fenRows = fenBoard.split("/");
+  for (const row of fenRows) {
+    let rowContent: figType[] = [];
+    const cells = [...row];
+    cells.forEach((cell) => {
+      /\d/.test(cell) ? (rowContent = [...rowContent, ...new Array(parseInt(cell)).fill("")]) : rowContent.push(cell as figType);
+    });
+    board.push(rowContent);
+  }
+
   const rows = [];
   for (let i = 8; i >= 1; i--) {
     rows.push(<BoardRow key={`row-${i}`} rowNumber={i} isWhiteLeft={i % 2 === 0} />);
@@ -28,27 +42,21 @@ export const Board = (props: BoardProps) => {
     );
   }
   return (
-    <div className="chess-board-and-figures">
-      <div className="chess-board">
-        {rows}
-        <div className="chess-board-col-letters">{colLetters}</div>
+    <div className="game-state">
+      <div className="chess-board-and-figures">
+        <div className="chess-board">
+          {rows}
+          <div className="chess-board-col-letters">{colLetters}</div>
+        </div>
+        <Figures board={board} />
       </div>
-      <Figures board={parseFEN(props.board)} />
+      <div className="state-data-container">
+        <div className="state-data">{`turn: ${splittedFEN[1]}`}</div>
+        <div className="state-data">{`castles: ${splittedFEN[2]}`}</div>
+        <div className="state-data">{`enPass: ${splittedFEN[3]}`}</div>
+        <div className="state-data">{`halfmove: ${splittedFEN[4]}`}</div>
+        <div className="state-data">{`fullmove: ${splittedFEN[5]}`}</div>
+      </div>
     </div>
   );
 };
-
-export function parseFEN(fen: string): figType[][] {
-  const boardFen = fen.split(/\s+/)[0];
-  const rows = boardFen.split("/");
-  const board: figType[][] = [];
-  for (const row of rows) {
-    let rowContent: figType[] = [];
-    const cells = [...row];
-    cells.forEach((cell) => {
-      /\d/.test(cell) ? (rowContent = [...rowContent, ...new Array(parseInt(cell)).fill("")]) : rowContent.push(cell as figType);
-    });
-    board.push(rowContent);
-  }
-  return board;
-}

@@ -1,51 +1,69 @@
+.game-state {
+  position: relative;
+  padding: 27px;
+}
+
 .chess-board-and-figures {
-    width: fit-content;
-    padding: 10px;
-    background-color: black;
-    box-sizing: border-box;
-    border-radius: 10px;
-    display: flex;
-    height: fit-content;
-    align-self: center;
-    margin: auto;
+  width: fit-content;
+  padding: 10px;
+  background-color: black;
+  box-sizing: border-box;
+  border-radius: 10px;
+  display: flex;
+  height: fit-content;
+  align-self: center;
+  margin: auto;
 }
 
 .chess-board-col-letters {
-    margin-left: 18px;
+  margin-left: 18px;
 }
 
 .chess-board-col-letter {
-    display: inline-flex;
-    color: white;
-    width: 50px;
-    justify-content: center;
-    height: 18px;
-    align-items: center;
+  display: inline-flex;
+  color: white;
+  width: 50px;
+  justify-content: center;
+  height: 18px;
+  align-items: center;
 }
 
 .chess-board-row {
-    display: flex;
+  display: flex;
 }
 
 .chess-board-row-number {
-    width: 18px;
-    background-color: black;
-    color: white;
-    justify-content: unset;
-    display: flex;
-    align-items: center;
+  width: 18px;
+  background-color: black;
+  color: white;
+  justify-content: unset;
+  display: flex;
+  align-items: center;
 }
 
 .chess-field {
-    height: 50px;
-    width: 50px;
-    display: inline-flex;
+  height: 50px;
+  width: 50px;
+  display: inline-flex;
 }
 
-.chess-field.white{
-    background-color: bisque;
+.chess-field.white {
+  background-color: bisque;
 }
 
 .chess-field.black {
-    background-color: brown;
+  background-color: brown;
+}
+
+.state-data-container {
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+.state-data {
+  background: black;
+  color: white;
+  padding: 8px;
+  border-radius: 10px;
+  margin: 8px;
+  text-align: center;
 }
