@@ -22,9 +22,11 @@ export type alphaBetaResp = {
  * WebSocket of game server
  */
 // const ws = new WebSocket("")
-const PlaceHolderIncomingFEN = "8/p3k3/5N2/4P3/8/B7/8/K7 b - - 0 1";
-
-const initBoard = "initBoard";
+// 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+// 'r1br2k1/pppp1pp1/7p/2b1p3/2Pn4/4QN2/PP2PPBP/RN3RK1 w - - 0 1'
+// '8/p3k3/5N2/4P3/8/B7/8/K7 b - - 0 1'
+//  '8/6k1/8/8/8/8/1K6/8 w - - 0 1'
+const PlaceHolderIncomingFEN = "8/6k1/8/8/8/8/1K6/8 w - - 0 1";
 
 function App() {
   const [board, setBoard] = React.useState(PlaceHolderIncomingFEN);
