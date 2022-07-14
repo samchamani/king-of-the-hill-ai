@@ -7,7 +7,7 @@ export interface FiguresProps {
 }
 
 export const Figures = (props: FiguresProps) => {
-  const figureList = [];
+  const figureList: React.ReactNode[] = [];
   for (const row in props.board) {
     const rowNumber = parseInt(row) + 1;
     for (const col in props.board[row]) {
