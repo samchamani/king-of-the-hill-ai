@@ -28,12 +28,12 @@ export const Board = (props: BoardProps) => {
     board.push(rowContent);
   }
 
-  const rows = [];
+  const rows: React.ReactNode[] = [];
   for (let i = 8; i >= 1; i--) {
     rows.push(<BoardRow key={`row-${i}`} rowNumber={i} isWhiteLeft={i % 2 === 0} />);
   }
 
-  const colLetters = [];
+  const colLetters: React.ReactNode[] = [];
   for (const l of LETTERS) {
     colLetters.push(
       <div key={`col-${l}`} className="chess-board-col-letter">
