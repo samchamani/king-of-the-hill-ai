@@ -1,7 +1,6 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: "Courier";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -22,26 +21,36 @@ body,
 
 #root {
   display: flex;
-  justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
 
 .chess-ui {
   display: flex;
 }
+.buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 8px 12px;
+  height: fit-content;
+  border-radius: 20px;
+  background-color: black;
+  margin: 0 8px;
+}
 
 .button {
   background: burlywood;
   height: 40px;
-  width: fit-content;
-  margin: auto;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0px 27px;
   border-radius: 20px;
-  margin: 30px;
   cursor: pointer;
+  margin: 8px 0;
+  width: 200px;
+  text-align: center;
 }
 
 .button:hover {
@@ -50,4 +59,30 @@ body,
 
 .button:active {
   background-color: darksalmon;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background-color: black;
+  width: 270px;
+  margin: 0 8px;
+  box-sizing: border-box;
+}
+
+.title {
+  margin: 50px 30px 65px;
+  font-size: 60px;
+  font-family: "Courier";
+  font-weight: bold;
+  background: brown;
+  border: bisque 5px solid;
+  padding: 15px;
+  width: 991px;
+  text-align: center;
+  color: bisque;
+  border-radius: 20px;
 }

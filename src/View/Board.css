@@ -1,18 +1,15 @@
 .game-state {
   position: relative;
-  padding: 27px;
 }
 
 .chess-board-and-figures {
   width: fit-content;
-  padding: 10px;
+  padding: 20px;
   background-color: black;
   box-sizing: border-box;
-  border-radius: 10px;
+  border-radius: 20px;
   display: flex;
   height: fit-content;
-  align-self: center;
-  margin: auto;
 }
 
 .chess-board-col-letters {
@@ -26,6 +23,8 @@
   justify-content: center;
   height: 18px;
   align-items: center;
+  padding-top: 10px;
+  box-sizing: border-box;
 }
 
 .chess-board-row {
@@ -57,13 +56,15 @@
 
 .state-data-container {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: 49% 49%;
+  gap: 2%;
+  margin: 4px 0;
 }
 .state-data {
   background: black;
   color: white;
   padding: 8px;
   border-radius: 10px;
-  margin: 8px;
+  margin: 4px 0;
   text-align: center;
 }

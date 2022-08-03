@@ -3,6 +3,7 @@ import { BoardRow } from "./BoardRow";
 import { Figures } from "./Figures";
 import "./Board.css";
 import { figType } from "./Figure";
+import { move } from "../App";
 
 const LETTERS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
@@ -11,6 +12,7 @@ const LETTERS = ["a", "b", "c", "d", "e", "f", "g", "h"];
  */
 export interface BoardProps {
   board: string;
+  lastMovePos: move | undefined;
 }
 
 export const Board = (props: BoardProps) => {
@@ -48,10 +50,10 @@ export const Board = (props: BoardProps) => {
           {rows}
           <div className="chess-board-col-letters">{colLetters}</div>
         </div>
-        <Figures board={board} />
+        <Figures board={board} lastMovePos={props.lastMovePos} />
       </div>
       <div className="state-data-container">
-        <div className="state-data">{`turn: ${splittedFEN[1]}`}</div>
+        <div className="state-data" style={{ gridColumnStart: 1, gridColumnEnd: 3 }}>{`turn: ${splittedFEN[1]}`}</div>
         <div className="state-data">{`castles: ${splittedFEN[2]}`}</div>
         <div className="state-data">{`enPass: ${splittedFEN[3]}`}</div>
         <div className="state-data">{`halfmove: ${splittedFEN[4]}`}</div>

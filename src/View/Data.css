@@ -1,0 +1,18 @@
+.data-object {
+  width: 100%;
+  background: floralwhite;
+  margin: 8px 0;
+  border-radius: 5px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.data-lable {
+  font-weight: bold;
+}
+
+.data-content {
+  max-height: 80px;
+  overflow: auto;
+  font-size: 11pt;
+}
