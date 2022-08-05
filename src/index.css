@@ -39,6 +39,27 @@ body,
   margin: 0 8px;
 }
 
+.special-button {
+  background: indianred;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 27px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin: 8px 0;
+  width: 200px;
+  text-align: center;
+}
+.special-button:hover {
+  background-color: darksalmon;
+}
+
+.special-button:active {
+  background-color: brown;
+}
+
 .button {
   background: burlywood;
   height: 40px;

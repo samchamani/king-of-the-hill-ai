@@ -4,8 +4,6 @@ import { API } from "./API";
 import { Chess } from "chess.js";
 import { Data } from "./View/Data";
 
-let api = new API();
-
 export type boardResp = {
   board: string;
 };
@@ -30,24 +28,57 @@ export type moveResp = {
   move: move;
 };
 
+let api = new API();
+let isAborted = false;
+
 /**
- * WebSocket of game server
+ * Initial FEN that will be used to set up the python server state and visualize the board.
+ * Originally, this would have been replaced with a WebSocket listener that is connected to
+ * a game or tournament server.
+ *
+ * Planned usage:
+ * ```
+ * const ws = new WebSocket("some url")
+ * ws.onmessage(handleMessage)
+ * ws.send(login || move)
+ * ```
+ *
  */
-// const ws = new WebSocket("")
-// rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-// r1br2k1/pppp1pp1/7p/2b1p3/2Pn4/4QN2/PP2PPBP/RN3RK1 w - - 0 1
-// 8/p3k3/5N2/4P3/8/B7/8/K7 b - - 0 1
-// 8/6k1/8/8/8/8/1K6/8 w - - 0 1
-// 6Bk/Q7/8/8/8/3K4/8/8 w - - 0 1
-// 6Bk/Q7/8/8/8/K7/8/8 w - - 0 1
-const PlaceHolderIncomingFEN = "6Bk/Q7/8/8/8/3K4/8/8 w - - 0 1";
+const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const maxGameDurationInMin = 1;
+const maxMovesAssumption = 10;
+const panicMoveSpeedInSec = 10;
+const algoRatio = 0.7;
 
 function App() {
-  const [board, setBoard] = React.useState(PlaceHolderIncomingFEN);
-  const [infoLog, setInfoLog] = React.useState("");
+  const [board, setBoard] = React.useState(FEN);
+  const splittedFEN = board.split(/\s+/);
+  const fullMoveCount = parseInt(splittedFEN[5]);
+  const timeOver = React.useRef(Date.now() + maxGameDurationInMin * 60 * 1000);
+  const remainingTimeInSec = React.useRef((timeOver.current - Date.now()) / 1000);
+  const isPanic = React.useRef((maxGameDurationInMin / 2) * 60 >= remainingTimeInSec.current);
+  const leftMovesUntilMax = React.useRef(maxMovesAssumption - fullMoveCount > 0 ? maxMovesAssumption - fullMoveCount : 0);
+  const moveTimeInSec = React.useRef(leftMovesUntilMax.current > 0 && !isPanic.current ? remainingTimeInSec.current / leftMovesUntilMax.current : panicMoveSpeedInSec);
+  const alphaBetaSec = React.useRef(!isPanic.current ? moveTimeInSec.current * algoRatio : 0);
+  const mctsSec = React.useRef(!isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current);
   const nextBestMoves = React.useRef<movesResp>();
   const selectedMove = React.useRef<move>();
   const lastMovePos = React.useRef<move>();
+
+  console.log(`
+Remaining time in sec: ${remainingTimeInSec.current}
+     Move time in sec: ${moveTimeInSec.current}
+`);
+  if (isPanic) console.log("Getting panic...");
+
+  React.useEffect(() => {
+    remainingTimeInSec.current = (timeOver.current - Date.now()) / 1000;
+    isPanic.current = (maxGameDurationInMin / 2) * 60 >= remainingTimeInSec.current;
+    leftMovesUntilMax.current = maxMovesAssumption - fullMoveCount > 0 ? maxMovesAssumption - fullMoveCount : 0;
+    moveTimeInSec.current = leftMovesUntilMax.current > 0 && !isPanic.current ? remainingTimeInSec.current / leftMovesUntilMax.current : panicMoveSpeedInSec;
+    alphaBetaSec.current = !isPanic.current ? moveTimeInSec.current * algoRatio : 0;
+    mctsSec.current = !isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current;
+  });
 
   async function initBoard() {
     const resp = await api.post(
@@ -65,33 +96,33 @@ function App() {
   }
 
   async function alphaBeta(seconds: number) {
+    if (seconds === 0) return;
     let depth = 1;
     const end = Date.now() + seconds * 1000;
-    setInfoLog("...Looking for good moves...\n" + infoLog);
     console.log("...Looking for good moves...");
-    let timeout = setTimer(seconds);
     while (Date.now() < end - 500) {
       const resp = await api.post("http://127.0.0.1:5000/alphabeta", JSON.stringify({ depth: depth, stopTime: end }));
       if (resp && isAlphaBetaResp(resp)) {
-        nextBestMoves.current = resp;
-        setInfoLog("new best moves!\n" + infoLog);
-        console.log(
-          nextBestMoves.current.moves.map((move) => move.toString),
-          `\nvalue: ${nextBestMoves.current.value}\ndepth: ${nextBestMoves.current.depth}`
-        );
-        if (nextBestMoves.current.value === 10000 || nextBestMoves.current.value === -10000) break;
+        if (Date.now() < end - 500) {
+          nextBestMoves.current = resp;
+          console.log(
+            nextBestMoves.current.moves.map((move) => move.toString),
+            `\nvalue: ${nextBestMoves.current.value}\ndepth: ${nextBestMoves.current.depth}`
+          );
+          if (nextBestMoves.current.value === 10000 || nextBestMoves.current.value === -10000) break;
+          depth += 1;
+        } else {
+          console.log(`Iteration of depth ${depth} was cancelled due to timeout`);
+          break;
+        }
       }
-      depth += 1;
+      console.log("Done");
     }
-    clearTimeout(timeout);
-    setInfoLog("Alpha-Beta is done\n" + infoLog);
-    console.log("Done");
   }
 
   async function doMove() {
     if (!selectedMove.current) {
       console.log("No move selected!");
-      setInfoLog("No moves selected!\n" + infoLog);
       return;
     }
     const resp = await api.post("http://127.0.0.1:5000/doMove", JSON.stringify({ move: selectedMove.current }));
@@ -100,27 +131,18 @@ function App() {
       setBoard(resp.board);
     }
     console.log("executed move");
-    setInfoLog("Executing selected move!\n" + infoLog);
     selectedMove.current = undefined;
     nextBestMoves.current = undefined;
   }
 
   async function undoMove() {
     const resp = await api.get("http://127.0.0.1:5000/undoLastMove");
-    setInfoLog("Undoing last move!\n" + infoLog);
     console.log("Undoing last move: ", resp);
     if (resp && isBoardResp(resp)) setBoard(resp.board);
   }
 
   function getChessJSMoves() {
-    console.log(new Chess(PlaceHolderIncomingFEN).moves());
-  }
-
-  function setTimer(seconds: number) {
-    return setTimeout(() => {
-      api.controller.abort();
-      api = new API();
-    }, seconds * 1000);
+    console.log(new Chess(FEN).moves());
   }
 
   function pickRandomMove() {
@@ -138,19 +160,47 @@ function App() {
 
   async function pickMCTSMove(seconds: number) {
     if (!nextBestMoves.current) {
-      console.log("No moves available!");
+      console.log("...Executing MCTS for all possible moves...");
+      const resp = await api.post("http://127.0.0.1:5000/mcts", JSON.stringify({ stopTime: Date.now() + seconds * 1000 }));
+      console.log(resp);
+      if (resp && isMoveResp(resp)) selectedMove.current = resp.move;
       return;
     }
     if (nextBestMoves.current.moves.length === 1) {
       console.log("Only one move available!");
       selectedMove.current = nextBestMoves.current.moves[0];
     } else {
+      const moves = nextBestMoves.current.moves.map((o) => o.toString);
       const end = Date.now() + seconds * 1000;
       console.log("...Looking for best of best moves according to MCTS...");
-      const resp = await api.post("http://127.0.0.1:5000/mcts", JSON.stringify({ stopTime: end }));
+      const resp = await api.post("http://127.0.0.1:5000/mcts", JSON.stringify({ moves: moves, stopTime: end }));
       console.log(resp);
       if (resp && isMoveResp(resp)) selectedMove.current = resp.move;
     }
+    console.log("picked", selectedMove.current);
+  }
+
+  async function automaticPlay() {
+    let isDone = false;
+    isAborted = false;
+    await initBoard();
+    while (!isDone && !isAborted && remainingTimeInSec.current > 0) {
+      if (alphaBetaSec.current !== 0) {
+        console.log(`Taking about ${alphaBetaSec.current} seconds for AlphaBeta`);
+        await alphaBeta(alphaBetaSec.current);
+      }
+      console.log(`Taking about ${mctsSec.current} seconds for MCTS`);
+      await pickMCTSMove(mctsSec.current);
+      if (!selectedMove.current) isDone = true;
+      await doMove();
+    }
+    console.log("Stopped automatic play");
+  }
+
+  async function abort() {
+    await api.controller.abort();
+    isAborted = true;
+    api = new API();
   }
 
   return (
@@ -158,36 +208,45 @@ function App() {
       <div className="title">{"KING-OF-THE-HILL AI"}</div>
       <div className="chess-ui">
         <div className="buttons">
-          <div className="button" onClick={async () => initBoard()}>
+          <div className="special-button" onClick={() => automaticPlay()}>
+            {"Automatic play"}
+          </div>
+          <div className="button" onClick={() => initBoard()}>
             {"Set board (on server)"}
           </div>
-          <div className="button" onClick={async () => getMoves()}>
+          <div className="button" onClick={() => getMoves()}>
             {"Get all possible moves"}
           </div>
-          <div className="button" onClick={async () => alphaBeta(10)}>
+          <div className="button" onClick={() => alphaBeta(alphaBetaSec.current)}>
             {"Get alpha-beta moves"}
           </div>
-          <div className="button" onClick={async () => pickRandomMove()}>
+          <div className="button" onClick={() => pickRandomMove()}>
             {"Pick random move"}
           </div>
-          <div className="button" onClick={async () => pickMCTSMove(5)}>
+          <div className="button" onClick={() => pickMCTSMove(mctsSec.current)}>
             {"Pick MCTS move"}
           </div>
-          <div className="button" onClick={async () => doMove()}>
+          <div className="button" onClick={() => doMove()}>
             {"Do selected move"}
           </div>
-          <div className="button" onClick={async () => undoMove()}>
+          <div className="button" onClick={() => undoMove()}>
             {"Undo last move"}
           </div>
           <div className="button" onClick={() => getChessJSMoves()}>
             {"Check moves of chess.js"}
           </div>
+          <div className="button" onClick={() => abort()}>
+            {"Abort current call"}
+          </div>
         </div>
-        <Board board={board} lastMovePos={lastMovePos.current} />
+        <Board board={splittedFEN[0]} lastMovePos={lastMovePos.current} />
         <div className="data">
-          <Data label="Log" content={infoLog} />
-          <Data label="Next Best Moves" content={nextBestMoves.current ? nextBestMoves.current.moves.map((o) => o.toString).join("\n") : "No moves found"} />
-          <Data label="Selected Move" content={selectedMove.current ? selectedMove.current.toString : "No move selected"} />
+          <Data label="Turn" content={splittedFEN[1]} />
+          <Data label="Castle rights" content={splittedFEN[2]} />
+          <Data label="En passant" content={splittedFEN[3]} />
+          <Data label="Halfmove clock" content={splittedFEN[4]} />
+          <Data label="Fullmove count" content={splittedFEN[5]} />
+          <Data label="For more info open your browser console" content="" />
         </div>
       </div>
     </>

@@ -16,11 +16,8 @@ export interface BoardProps {
 }
 
 export const Board = (props: BoardProps) => {
-  const splittedFEN = props.board.split(/\s+/);
-
-  const fenBoard = splittedFEN[0];
   const board: figType[][] = [];
-  const fenRows = fenBoard.split("/");
+  const fenRows = props.board.split("/");
   for (const row of fenRows) {
     let rowContent: figType[] = [];
     const cells = [...row];
@@ -44,21 +41,12 @@ export const Board = (props: BoardProps) => {
     );
   }
   return (
-    <div className="game-state">
-      <div className="chess-board-and-figures">
-        <div className="chess-board">
-          {rows}
-          <div className="chess-board-col-letters">{colLetters}</div>
-        </div>
-        <Figures board={board} lastMovePos={props.lastMovePos} />
+    <div className="chess-board-and-figures">
+      <div className="chess-board">
+        {rows}
+        <div className="chess-board-col-letters">{colLetters}</div>
       </div>
-      <div className="state-data-container">
-        <div className="state-data" style={{ gridColumnStart: 1, gridColumnEnd: 3 }}>{`turn: ${splittedFEN[1]}`}</div>
-        <div className="state-data">{`castles: ${splittedFEN[2]}`}</div>
-        <div className="state-data">{`enPass: ${splittedFEN[3]}`}</div>
-        <div className="state-data">{`halfmove: ${splittedFEN[4]}`}</div>
-        <div className="state-data">{`fullmove: ${splittedFEN[5]}`}</div>
-      </div>
+      <Figures board={board} lastMovePos={props.lastMovePos} />
     </div>
   );
 };

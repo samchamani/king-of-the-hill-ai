@@ -1,7 +1,3 @@
-.game-state {
-  position: relative;
-}
-
 .chess-board-and-figures {
   width: fit-content;
   padding: 20px;
@@ -52,19 +48,4 @@
 
 .chess-field.black {
   background-color: brown;
-}
-
-.state-data-container {
-  display: grid;
-  grid-template-columns: 49% 49%;
-  gap: 2%;
-  margin: 4px 0;
-}
-.state-data {
-  background: black;
-  color: white;
-  padding: 8px;
-  border-radius: 10px;
-  margin: 4px 0;
-  text-align: center;
 }

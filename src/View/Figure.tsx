@@ -27,10 +27,11 @@ export const Figure = (props: FigureProps) => {
 
   const oldCol = props.lastMovePos ? ((props.lastMovePos.from as number) % 8) + 1 : props.col;
   const oldRow = props.lastMovePos ? ((props.lastMovePos.from as number) - (oldCol - 1)) / 8 + 1 : props.row;
-  const [pos, setPos] = React.useState({ top: (oldRow - 1) * 50, left: (oldCol - 1) * 50 });
+  const [pos, setPos] = React.useState(isNaN(oldRow) || isNaN(oldCol) ? posStyles : { top: (oldRow - 1) * 50, left: (oldCol - 1) * 50 });
 
   React.useEffect(() => {
-    setTimeout(() => setPos(posStyles), 100);
+    // setTimeout(() => setPos(posStyles), 100);
+    setPos(posStyles);
   }, []);
 
   return <div className={`chess-figure ${props.fig.toLowerCase() + isWhite(props.fig)}`} style={pos} />;
