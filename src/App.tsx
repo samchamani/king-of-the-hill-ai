@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Board } from "./View/Board";
 import { API } from "./API";
-import { Chess } from "chess.js";
 import { Data } from "./View/Data";
 
 export type boardResp = {
@@ -45,8 +44,8 @@ let isAborted = false;
  *
  */
 const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const maxGameDurationInMin = 1;
-const maxMovesAssumption = 10;
+const maxGameDurationInMin = 60;
+const maxMovesAssumption = 40;
 const panicMoveSpeedInSec = 10;
 const algoRatio = 0.7;
 
@@ -59,8 +58,8 @@ function App() {
   const isPanic = React.useRef((maxGameDurationInMin / 2) * 60 >= remainingTimeInSec.current);
   const leftMovesUntilMax = React.useRef(maxMovesAssumption - fullMoveCount > 0 ? maxMovesAssumption - fullMoveCount : 0);
   const moveTimeInSec = React.useRef(leftMovesUntilMax.current > 0 && !isPanic.current ? remainingTimeInSec.current / leftMovesUntilMax.current : panicMoveSpeedInSec);
-  const alphaBetaSec = React.useRef(!isPanic.current ? moveTimeInSec.current * algoRatio : 0);
-  const mctsSec = React.useRef(!isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current);
+  const alphaBetaSec = React.useRef(!isPanic.current ? moveTimeInSec.current * algoRatio : moveTimeInSec.current * (1 - algoRatio));
+  const mctsSec = React.useRef(!isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current * algoRatio);
   const nextBestMoves = React.useRef<movesResp>();
   const selectedMove = React.useRef<move>();
   const lastMovePos = React.useRef<move>();
@@ -69,15 +68,15 @@ function App() {
 Remaining time in sec: ${remainingTimeInSec.current}
      Move time in sec: ${moveTimeInSec.current}
 `);
-  if (isPanic) console.log("Getting panic...");
+  if (isPanic.current) console.log("Getting panic...");
 
   React.useEffect(() => {
     remainingTimeInSec.current = (timeOver.current - Date.now()) / 1000;
     isPanic.current = (maxGameDurationInMin / 2) * 60 >= remainingTimeInSec.current;
     leftMovesUntilMax.current = maxMovesAssumption - fullMoveCount > 0 ? maxMovesAssumption - fullMoveCount : 0;
     moveTimeInSec.current = leftMovesUntilMax.current > 0 && !isPanic.current ? remainingTimeInSec.current / leftMovesUntilMax.current : panicMoveSpeedInSec;
-    alphaBetaSec.current = !isPanic.current ? moveTimeInSec.current * algoRatio : 0;
-    mctsSec.current = !isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current;
+    alphaBetaSec.current = !isPanic.current ? moveTimeInSec.current * algoRatio : moveTimeInSec.current * (1 - algoRatio);
+    mctsSec.current = !isPanic.current ? moveTimeInSec.current * (1 - algoRatio) : moveTimeInSec.current * algoRatio;
   });
 
   async function initBoard() {
@@ -139,23 +138,6 @@ Remaining time in sec: ${remainingTimeInSec.current}
     const resp = await api.get("http://127.0.0.1:5000/undoLastMove");
     console.log("Undoing last move: ", resp);
     if (resp && isBoardResp(resp)) setBoard(resp.board);
-  }
-
-  function getChessJSMoves() {
-    console.log(new Chess(FEN).moves());
-  }
-
-  function pickRandomMove() {
-    if (!nextBestMoves.current) {
-      console.log("No moves available!");
-      return;
-    }
-    if (nextBestMoves.current.moves.length === 1) {
-      selectedMove.current = nextBestMoves.current.moves[0];
-    } else {
-      selectedMove.current = nextBestMoves.current.moves[Math.floor(Math.random() * nextBestMoves.current.moves.length)];
-    }
-    console.log("picked", selectedMove.current);
   }
 
   async function pickMCTSMove(seconds: number) {
@@ -220,9 +202,6 @@ Remaining time in sec: ${remainingTimeInSec.current}
           <div className="button" onClick={() => alphaBeta(alphaBetaSec.current)}>
             {"Get alpha-beta moves"}
           </div>
-          <div className="button" onClick={() => pickRandomMove()}>
-            {"Pick random move"}
-          </div>
           <div className="button" onClick={() => pickMCTSMove(mctsSec.current)}>
             {"Pick MCTS move"}
           </div>
@@ -231,9 +210,6 @@ Remaining time in sec: ${remainingTimeInSec.current}
           </div>
           <div className="button" onClick={() => undoMove()}>
             {"Undo last move"}
-          </div>
-          <div className="button" onClick={() => getChessJSMoves()}>
-            {"Check moves of chess.js"}
           </div>
           <div className="button" onClick={() => abort()}>
             {"Abort current call"}
